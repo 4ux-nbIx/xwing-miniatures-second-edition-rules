@@ -20,60 +20,62 @@ On Linux systems without `ensurepip`, install the matching Python venv package.
 If a mounted filesystem rejects symlinks, use `python -m venv --copies .venv`;
 some systems also require creating `.venv/lib64` as a directory first.
 
-Open `converted/html/index.html` in a browser or `converted/markdown/index.md` in a
-Markdown viewer. Both formats contain section descriptions and linked tables of
-contents, preserving source order. Each rule has its own file under its section
-folder, with a section-prefixed kebab-case filename:
+Open `docs/index.html` in a browser or `markdown/index.md` in a Markdown viewer.
+Both formats contain section descriptions and linked tables of contents in source
+order. Both formats retain `introduction/` and `glossary/` section folders, with
+section-prefixed kebab-case filenames:
 
 ```text
-converted/
-  markdown/
-    index.md
-    introduction/
-      introduction-golden-rules.md
-      ...
-    glossary/
-      glossary-abilities.md
-      ...
-  html/
-    index.html
-    style.css
-    Rules Reference v1.4.6-1.pdf
-    assets/
-      page-frame.png
-      page-02-pilot-and-ship-abilities.png
-      ...
-    introduction/
-      introduction-golden-rules.html
-      ...
-    glossary/
-      glossary-abilities.html
-      ...
-    vendor/xwing-miniatures-font/
-      xwing-miniatures.css
-      xwing-miniatures.ttf
-      LICENSE
+markdown/
+  index.md
+  introduction/
+    introduction-golden-rules.md
+    ...
+  glossary/
+    glossary-abilities.md
+    ...
+  Rules Reference v1.4.6-1.pdf
   assets/
     page-02-pilot-and-ship-abilities.png
     ...
+docs/
+  index.html
+  style.css
+  Rules Reference v1.4.6-1.pdf
+  assets/
+    page-frame.png
+    page-02-pilot-and-ship-abilities.png
+    ...
+  introduction/
+    introduction-golden-rules.html
+    ...
+  glossary/
+    glossary-abilities.html
+    ...
+  vendor/xwing-miniatures-font/
+    xwing-miniatures.css
+    xwing-miniatures.ttf
+    LICENSE
 ```
 
-Each format has 3 Introduction rules and 149 Glossary rules. HTML includes copies
-of all 44 illustration crops and the source PDF, alongside its frame, styles, and
-icon font. Copy `converted/html/` anywhere and open `index.html`; all generated
-file links stay inside that folder, including appendix links to the bundled PDF.
-Markdown uses the sibling `converted/assets/` folder and the original source PDF.
-Keep those files together when moving Markdown output. Rerunning replaces
-the generated files. Existing output from earlier versions stays outside the new indexes; old links may be stale.
-To choose another output directory:
+Each format has 3 Introduction rules and 149 Glossary rules. Both folders are
+self-contained, including all 44 illustration crops and a copy of the source PDF.
+Copy either folder anywhere and open its index; all generated file links stay
+inside that folder, including appendix links to the bundled PDF. HTML also
+includes its frame, styles, and icon font.
+
+Rerunning replaces generated files. Existing output from earlier versions stays
+outside the new indexes; old links may be stale. To choose another parent directory:
 
 ```sh
 python convert_rules.py "Rules Reference v1.4.6-1.pdf" -o converted-review
 python -m unittest discover -s tests -v
 ```
 
-`-o` now accepts a directory, rather than the previous preview's Markdown filename.
-The `converted/` tree is ignored by Git according to the repository's `.gitignore`.
+This writes `converted-review/docs/` and `converted-review/markdown/`.
+`-o` accepts a parent directory, defaulting to the current directory.
+The generated `markdown/` and legacy `converted/` trees are ignored by Git.
+The `docs/` tree can be tracked by Git.
 
 ## Preserved structure
 
@@ -86,7 +88,7 @@ The `converted/` tree is ignored by Git according to the repository's `.gitignor
 - Green references link to rule files or subsection anchors. Explicit aliases
   handle inflections and terms such as `destroyed`, which targets `DESTROYING SHIPS`.
   References to appendices outside the conversion link to the relative source PDF
-  with `#page=N`. HTML links to its bundled PDF; Markdown links to the original.
+  with `#page=N`. Both formats link to their own bundled PDF.
   Page navigation depends on viewer support.
 - In Markdown, custom `X-WingIcons` characters become textual tags such as `[focus]`, `[hit]`,
   `[charge]`, and `[bank-left]`. `SYMBOLS` contains all 62 mappings used in this scope.
@@ -107,7 +109,7 @@ and printing. Each rule links back to the HTML index.
 Every HTML page uses graphical margins extracted from the PDF's physical page 3.
 Only its full-page background image is rendered, clipped to the visible page area;
 rules, copyright text, and page numbers are excluded. CSS `border-image` applies
-the extracted `html/assets/page-frame.png` as a nine-slice frame. Each corner uses
+the extracted `docs/assets/page-frame.png` as a nine-slice frame. Each corner uses
 590×530 source pixels, preserving the diagonal lines at the top right and bottom
 left. Corners scale uniformly with the rim; only the middle edges stretch around
 the full content height. A decorative layer behind the text keeps the large

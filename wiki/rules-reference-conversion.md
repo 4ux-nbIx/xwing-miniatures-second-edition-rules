@@ -23,7 +23,7 @@ sources:
     title: Pinned X-Wing Miniatures Font
 generated:
   by: process:project-wiki-publish
-  at: 2026-10-31T17:29:27.021Z
+  at: 2026-10-31T17:54:57.191Z
 ---
 # Rules Reference Conversion
 
@@ -31,9 +31,9 @@ generated:
 
 Use the Python/PyMuPDF converter for `Rules Reference v1.4.6-1.pdf`. It converts physical pages 2–23: Introduction and Glossary. The cover is omitted, and conversion stops before APPENDIX: EXAMPLES on page 24. Installation and invocation commands live in [README](../README.md).[^readme]
 
-Running `python convert_rules.py` produces `converted/markdown/index.md` and `converted/html/index.html`. Each format has 3 Introduction rules and 149 Glossary rules. Markdown uses 44 crops under `converted/assets/`; HTML includes copies in `converted/html/assets/`. Each index retains section descriptions and linked TOCs in source order. Each section has a folder, and each rule has a section-prefixed kebab-case filename, such as `glossary/glossary-actions.md` or `glossary/glossary-actions.html`. Subsections remain inside their rule files. The Python `convert` function returns the new Markdown index path.[^converter]
+Running `python convert_rules.py` produces `markdown/index.md` and `docs/index.html` in the current directory. Each format has 3 Introduction rules and 149 Glossary rules. Both formats retain section folders, for example `markdown/glossary/glossary-actions.md` and `docs/glossary/glossary-actions.html`. Both formats bundle 44 crops in their own `assets/` folder and a copy of the source PDF. Each index retains section descriptions and linked TOCs in source order. Subsections remain inside their rule files. The Python `convert` function returns the Markdown index path.[^converter]
 
-The `-o` argument accepts an output directory, replacing the old preview's Markdown-filename argument. Rerunning overwrites generated files. Older preview and top-level Markdown files remain outside the new indexes and may have stale links; conversion does not delete them. The repository ignores `converted/`, so generated output is not tracked by Git by default.[^readme][^ignore]
+The `-o` argument accepts a parent directory for `docs/` and `markdown/`, defaulting to the current directory. For example, `-o converted-review` writes `converted-review/docs/` and `converted-review/markdown/`. Rerunning overwrites generated files. Older output remains outside the new indexes and may have stale links; conversion does not delete it. The repository ignores `/markdown/` and legacy `/converted/`; `/docs/` is not ignored and can be tracked by Git.[^readme][^ignore]
 
 ## Structure and continuations
 
@@ -51,7 +51,7 @@ The 62 scoped `X-WingIcons` mappings produce textual tags such as `[barrel-roll]
 
 Green text marks rule references. Wrapped spans merge into one link, and explicit aliases handle inflections and descriptive phrases. References within the converted scope link to local rule files or explicit subsection anchors. The text `destroyed` targets `DESTROYING SHIPS`.[^converter]
 
-References outside the scope link to the relative source PDF with `#page=N`: generic Appendix to page 24, individual device entries to 25, Squad Building to 43, Huge Ships to 44, and Environment Cards to 49. HTML bundles the PDF under its original filename inside the HTML folder and links to that copy. Markdown still requires the original PDF at its relative path. Page navigation depends on the PDF viewer.[^converter]
+References outside the scope link to a bundled source PDF with `#page=N`: generic Appendix to page 24, individual device entries to 25, Squad Building to 43, Huge Ships to 44, and Environment Cards to 49. Both formats bundle the PDF under its original filename inside their own output folder. Page navigation depends on the PDF viewer.[^converter]
 
 ## Composite illustrations
 
@@ -67,7 +67,7 @@ Nearby prose is removed from a temporary PDF page before rendering overlapping c
 
 ## HTML styling and icons
 
-The generated HTML folder is self-contained: pages, artwork, source PDF, stylesheets, frame image, icon font, and font license all reside inside it. Copy `converted/html/` alone and open `index.html`. All generated local links and stylesheet resources remain inside that folder. Crops are rendered once and copied into HTML assets. A relocation regression check copies HTML to a separate directory, checks HTML/CSS file references and anchors, and compares the bundled PDF and illustration bytes.[^converter][^checks]
+Both generated output folders are self-contained. Copy `docs/` alone and open `index.html`, or copy `markdown/` alone and open `index.md`. All generated local links stay inside the respective folder. HTML includes stylesheets, frame image, icon font, and font license. Crops are rendered once in `markdown/assets/` and copied into `docs/assets/`. Relocation regression checks copy each format to a separate directory and validate local references and anchors; HTML checks also cover CSS resources. Bundled PDFs and illustration copies are compared by bytes.[^converter][^checks]
 
 HTML uses Python-Markdown to render the extracted paragraphs and lists. Inline emphasis, source text colors, green references, and subsection anchors are retained. Each page links to the HTML index. `web/style.css` supplies responsive and print layouts, condensed sans-serif body text, and heavy geometric headings. Local font stacks approximate Eurostile and Bank Gothic; commercial source fonts are not bundled.[^converter][^styling]
 
@@ -75,7 +75,7 @@ The bundled X-Wing Miniatures Font is pinned to commit `2664d8e9efffd4f1f7a0feac
 
 ## HTML graphical margins
 
-Every HTML document uses `html/assets/page-frame.png`, extracted from physical page 3 at 216 dpi (1836×2376 pixels). A temporary copy retains only the background form's first marked-content artifact, excluding rules, copyright text, and page numbers. Rendering clips bleed to the visible page. Keep the original image transformation and graphics state, and restore the CMYK transparency group omitted by `insert_pdf`; raw image extraction and reinsertion changes rendered colors. The source PDF is not modified. Missing margin artwork stops conversion before replacing generated files.[^converter]
+Every HTML document uses `docs/assets/page-frame.png`, extracted from physical page 3 at 216 dpi (1836×2376 pixels). A temporary copy retains only the background form's first marked-content artifact, excluding rules, copyright text, and page numbers. Rendering clips bleed to the visible page. Keep the original image transformation and graphics state, and restore the CMYK transparency group omitted by `insert_pdf`; raw image extraction and reinsertion changes rendered colors. The source PDF is not modified. Missing margin artwork stops conversion before replacing generated files.[^converter]
 
 CSS `border-image` uses 530-pixel vertical slices and 590-pixel horizontal slices, retaining the full 590×530 source-pixel corner regions containing diagonal graphics. Corners scale uniformly at the same ratio as the 90-pixel source rim: 1/3 on desktop and 2/9 on narrow screens. Only middle edge sections stretch around document content. A noninteractive pseudo-element behind the rules holds the frame so large corner interiors neither cover text nor add excess padding. The content border remains 30 CSS pixels wide, reduced to 20 pixels at viewport widths up to 40rem. Short pages fill the viewport minus desktop margins. The frame remains separate from Markdown and the 44 illustration crops.[^styling]
 

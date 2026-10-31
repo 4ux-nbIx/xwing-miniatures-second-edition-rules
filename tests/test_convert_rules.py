@@ -173,9 +173,9 @@ class ConversionTests(unittest.TestCase):
         self.assertNotIn('\ufffc', self.text)
         self.assertIn('[barrel-roll]', self.rule('card-interpretation', 'introduction'))
         self.assertIn('[hyperdrive] Hyperdrive', self.rule('upgrade-icons'))
-        images = list((self.root / 'assets').glob('*.png'))
+        images = list((self.output / 'assets').glob('*.png'))
         self.assertEqual(len(images), sum(len(figures) for figures in FIGURES.values()))
-        illustration = self.root / 'assets/page-02-pilot-and-ship-abilities.png'
+        illustration = self.output / 'assets/page-02-pilot-and-ship-abilities.png'
         image = pymupdf.Pixmap(illustration)
         self.assertEqual((image.width, image.height), (792, 351))
         abilities = self.rule('abilities')
@@ -185,19 +185,19 @@ class ConversionTests(unittest.TestCase):
         with pymupdf.open(SOURCE) as document:
             box = FIGURES[21][0][0]
             original = document[20].get_pixmap(matrix=pymupdf.Matrix(3, 3), clip=pymupdf.Rect(box))
-            crop = pymupdf.Pixmap(self.root / 'assets/page-21-bank-compared-with-sideslip.png')
+            crop = pymupdf.Pixmap(self.output / 'assets/page-21-bank-compared-with-sideslip.png')
             self.assertEqual(original.samples, crop.samples, 'Crop masks must not erase illustration content')
 
     def test_ion_image_immediately_follows_heading(self):
         self.assertTrue(self.rule('ion').startswith(
-            '# ION\n\n![Ion token](../../assets/page-13-ion-token.png)\n\nA ship is'))
+            '# ION\n\n![Ion token](../assets/page-13-ion-token.png)\n\nA ship is'))
 
     def test_jam_image_immediately_follows_heading(self):
         self.assertTrue(self.rule('jam').startswith(
-            '# JAM ([jam])\n\n![Jam token](../../assets/page-14-jam-token.png)\n\nPilots can jam'))
+            '# JAM ([jam])\n\n![Jam token](../assets/page-14-jam-token.png)\n\nPilots can jam'))
 
     def test_fuse_marker_image_follows_its_heading(self):
-        image = '![Fuse marker](../../assets/page-13-fuse-marker.png)'
+        image = '![Fuse marker](../assets/page-13-fuse-marker.png)'
         fuse = self.rule('fuse-marker')
         self.assertIn(image, fuse)
         self.assertLess(fuse.index('# FUSE MARKER'), fuse.index(image))
@@ -205,7 +205,7 @@ class ConversionTests(unittest.TestCase):
         self.assertNotIn(image, self.rule('fully-execute'))
 
     def test_victory_counters_stay_in_their_column(self):
-        image = '![Victory counters](../../assets/page-23-victory-counters.png)'
+        image = '![Victory counters](../assets/page-23-victory-counters.png)'
         victory = self.rule('victory-counters')
         self.assertIn(image, victory)
         self.assertLess(victory.index('# VICTORY COUNTERS'), victory.index(image))
@@ -220,7 +220,7 @@ class ConversionTests(unittest.TestCase):
         self.assertEqual(before, {p: p.read_bytes() for p in self.root.rglob('*') if p.is_file()})
 
     def test_html_files_links_assets_and_content(self):
-        root = self.root / 'html'
+        root = self.root / 'docs'
         pages = list(root.rglob('*.html'))
         self.assertEqual(len(pages), len(self.files))
         for page in pages:
@@ -268,7 +268,7 @@ class ConversionTests(unittest.TestCase):
     def test_html_folder_is_portable_without_other_output_or_source_files(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory) / 'portable rules'
-            shutil.copytree(self.root / 'html', root)
+            shutil.copytree(self.root / 'docs', root)
             for page in root.rglob('*.html'):
                 parsed = HtmlContent(page.read_text(encoding='utf-8'))
                 for _, attrs in parsed.elements:
@@ -288,11 +288,33 @@ class ConversionTests(unittest.TestCase):
                     self.assertTrue(target.is_relative_to(root.resolve()), url)
                     self.assertTrue(target.is_file(), f'{css}: {url}')
             self.assertEqual((root / SOURCE.name).read_bytes(), SOURCE.read_bytes())
-            for original in (self.root / 'assets').glob('*.png'):
+            for original in (self.output / 'assets').glob('*.png'):
                 self.assertEqual((root / 'assets' / original.name).read_bytes(), original.read_bytes())
 
+    def test_markdown_section_folders_are_portable(self):
+        self.assertEqual(self.index, self.output / 'index.md')
+        self.assertEqual([p.name for p in self.output.glob('*.md')], ['index.md'])
+        self.assertEqual(len(list((self.output / 'introduction').glob('*.md'))), 3)
+        self.assertEqual(len(list((self.output / 'glossary').glob('*.md'))), 149)
+        self.assertFalse((self.root / 'assets').exists())
+        self.assertFalse((self.root / 'html').exists())
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / 'portable markdown'
+            shutil.copytree(self.output, root)
+            self.assertEqual((root / SOURCE.name).read_bytes(), SOURCE.read_bytes())
+            for page in root.rglob('*.md'):
+                self.assertIn(page.parent, (root, root / 'introduction', root / 'glossary'))
+                for url in re.findall(r'\]\(([^)\n]+)\)', page.read_text(encoding='utf-8')):
+                    parsed = urlsplit(url)
+                    self.assertFalse(parsed.scheme or parsed.netloc, url)
+                    target = (page.parent / unquote(parsed.path)).resolve()
+                    self.assertTrue(target.is_relative_to(root.resolve()), url)
+                    self.assertTrue(target.is_file(), f'{page}: {url}')
+                    if parsed.fragment and target.suffix == '.md':
+                        self.assertIn(f'<a id="{parsed.fragment}"></a>', target.read_text(encoding='utf-8'))
+
     def test_html_page_frame_preserves_pdf_margins_without_body_text(self):
-        root = self.root / 'html'
+        root = self.root / 'docs'
         css = (root / 'style.css').read_text()
         for url in re.findall(r'url\("([^"]+)"\)', css):
             self.assertTrue((root / url).is_file(), f'Broken stylesheet asset: {url}')

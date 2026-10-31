@@ -361,16 +361,16 @@ def organize(blocks, output, extension=".md"):
     return sections, targets
 
 
-def render_blocks(blocks, targets, current, source, output, assets, html=False):
+def render_blocks(blocks, targets, current, source, root, assets, html=False):
     rendered = []
     list_parent = False
     for block in blocks:
         if block.kind == "figure":
             box, description = block.figure
             name = f"page-{block.page:02d}-{slug(description)}.png"
-            asset = output / "assets" / name
+            asset = root.parent / "markdown" / "assets" / name
             assets[asset] = block.page, box
-            linked_asset = output / "html" / "assets" / name if html else asset
+            linked_asset = root / "assets" / name
             rendered.append(f"![{description}]({relative_url(str(linked_asset), current)})")
         else:
             text = inline_text(block.spans, targets, current, source, html=html)
@@ -448,29 +448,29 @@ def extract_page_frame(document):
 def convert(source, output):
     source, output = Path(source), Path(output)
     if output.suffix.lower() == ".md":
-        raise ValueError("Output must be a directory; use -o converted")
+        raise ValueError("Output must be a directory; use -o output")
     with pymupdf.open(source) as document:
         if len(document) != 49 or document[1].rect != pymupdf.Rect(0, 0, 612, 792):
             raise ValueError("Expected the 49-page US Letter Rules Reference v1.4.6-1 PDF")
         blocks = extract_blocks(document)
         files, assets = {}, {}
-        for format, extension in (("markdown", ".md"), ("html", ".html")):
+        for format, extension in (("markdown", ".md"), ("docs", ".html")):
             root = output / format
-            html = format == "html"
-            linked_source = root / source.name if html else source
+            html = extension == ".html"
+            linked_source = root / source.name
             sections, targets = organize(blocks, root, extension)
             index = root / ("index" + extension)
             toc = ["# Rules Reference v1.4.6-1"]
             for section in sections:
                 toc.append("## " + section["title"].title())
-                intro = render_blocks(section["intro"], targets, index, linked_source, output, assets, html=html)
+                intro = render_blocks(section["intro"], targets, index, linked_source, root, assets, html=html)
                 if intro:
                     toc.append(intro)
                 links = []
                 for rule in section["rules"]:
                     title = "".join(translated(s) for s in rule["title"].spans).strip()
                     heading = inline_text(rule["title"].spans, targets, rule["path"], linked_source, html=True) if html else title
-                    text = "# " + heading + "\n\n" + render_blocks(rule["blocks"], targets, rule["path"], linked_source, output, assets, html=html) + "\n"
+                    text = "# " + heading + "\n\n" + render_blocks(rule["blocks"], targets, rule["path"], linked_source, root, assets, html=html) + "\n"
                     files[rule["path"]] = html_document(text, title, rule["path"], root) if html else text
                     links.append(f"- [{escape(title) if html else title}]({relative_url(str(rule['path']), index)})")
                 toc.append("\n".join(links))
@@ -510,22 +510,23 @@ def convert(source, output):
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(text, encoding="utf-8")
         for relative, data in web_assets.items():
-            path = output / "html" / relative
+            path = output / "docs" / relative
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(data)
+        (output / "markdown" / source.name).write_bytes(web_assets[Path(source.name)])
     return output / "markdown" / "index.md"
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("source", nargs="?", type=Path, default=SOURCE)
-    parser.add_argument("-o", "--output", type=Path, default=Path("converted"), help="output directory (default: converted)")
+    parser.add_argument("-o", "--output", type=Path, default=Path("."), help="parent directory for docs/ and markdown/ (default: current directory)")
     args = parser.parse_args()
     try:
         result = convert(args.source, args.output)
     except (OSError, ValueError, pymupdf.FileDataError) as error:
         parser.exit(1, f"Conversion failed: {error}\n")
-    print(f"Converted Introduction and Glossary: {result} and {args.output / 'html' / 'index.html'}")
+    print(f"Converted Introduction and Glossary: {result} and {args.output / 'docs' / 'index.html'}")
 
 
 if __name__ == "__main__":
