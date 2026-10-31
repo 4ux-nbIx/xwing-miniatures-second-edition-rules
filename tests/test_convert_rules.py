@@ -226,6 +226,7 @@ class ConversionTests(unittest.TestCase):
         self.assertEqual(len(pages), len(self.files))
         for page in pages:
             parsed = HtmlContent(page.read_text(encoding='utf-8'))
+            self.assertFalse(any(tag == 'nav' for tag, _ in parsed.elements), page)
             self.assertFalse(any(tag in {'pre', 'code'} for tag, _ in parsed.elements), page)
             text = ''.join(parsed.text)
             original = self.files[page.relative_to(root).with_suffix('.md').as_posix()]

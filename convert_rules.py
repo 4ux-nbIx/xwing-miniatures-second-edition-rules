@@ -397,7 +397,6 @@ def html_document(text, title, current, root):
     for i in range(0, len(parts), 2):
         parts[i] = re.sub(r'\[([a-z-]+)\]', html_icon, parts[i])
     stylesheet = relative_url(str(root / "style.css"), current)
-    index = relative_url(str(root / "index.html"), current)
     manifest = relative_url(str(root / "manifest.webmanifest"), current)
     favicon = relative_url(str(root / "favicon.ico"), current)
     icon = relative_url(str(root / "icons/icon.svg"), current)
@@ -412,7 +411,7 @@ def html_document(text, title, current, root):
             f'<link rel="apple-touch-icon" href="{touch_icon}">\n'
             f'<script src="{script}" defer></script>\n'
             f'<title>{escape(title)}</title>\n<link rel="stylesheet" href="{stylesheet}">\n'
-            f'</head>\n<body>\n<nav aria-label="Rules navigation"><a href="{index}">Rules Reference</a></nav>\n'
+            f'</head>\n<body>\n'
             f'<main>{"".join(parts)}</main>\n</body>\n</html>\n')
 
 

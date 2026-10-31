@@ -104,7 +104,10 @@ The `docs/` tree can be tracked by Git.
 HTML uses condensed sans-serif body text, heavy geometric headings, source text
 colors, and green rule links. Local font stacks approximate Eurostile and Bank
 Gothic; those commercial fonts are not bundled. Layout adapts to narrow screens
-and printing. Each rule links back to the HTML index.
+and printing. Page titles are black without an underline, and pages omit the
+navigation header. Inline icons are 20% smaller and use token-specific colors.
+Narrow screens use smaller body text, half the previous page inset, and half
+the default bullet indentation and item spacing.
 
 Every HTML page uses graphical margins extracted from the PDF's physical page 3.
 Only its full-page background image is rendered, clipped to the visible page area;
@@ -114,7 +117,7 @@ the extracted `docs/assets/page-frame.png` as a nine-slice frame. Each corner us
 left. Corners scale uniformly with the rim; only the middle edges stretch around
 the full content height. A decorative layer behind the text keeps the large
 corners from covering content or adding excess padding. The border is
-30 pixels wide on desktop and 20 pixels on narrow screens. The center stays white.
+30 pixels wide on desktop and 10 pixels on narrow screens. The center stays white.
 
 Inline tags such as `[bank-left]` become accessible icons using
 [geordanr/xwing-miniatures-font](https://github.com/geordanr/xwing-miniatures-font).
