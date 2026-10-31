@@ -1,0 +1,48 @@
+@import url("vendor/xwing-miniatures-font/xwing-miniatures.css");
+
+:root { color: #231f20; background: #e9ecee; }
+body {
+  --frame-width: 30px;
+  position: relative;
+  isolation: isolate;
+  box-sizing: border-box;
+  max-width: 70rem;
+  min-height: calc(100vh - 4rem);
+  margin: 2rem auto;
+  border: var(--frame-width) solid transparent;
+  padding: 1rem 1.5rem;
+  background: white;
+  font-family: "Eurostile", "Arial Narrow", "Liberation Sans Narrow", Arial, sans-serif;
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+body::before {
+  content: "";
+  position: absolute;
+  inset: calc(-1 * var(--frame-width));
+  z-index: -1;
+  pointer-events: none;
+  border: solid transparent;
+  /* Preserve 590×530 source-pixel corners at the same scale as the 90-pixel rim. */
+  border-width: calc(var(--frame-width) * 530 / 90) calc(var(--frame-width) * 590 / 90);
+  border-image: url("assets/page-frame.png") 530 590 stretch;
+}
+h1, h2 {
+  font-family: "Eurostile", "Bank Gothic", "Arial Black", sans-serif;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: .04em;
+}
+h1 { color: #004761; border-bottom: .2rem solid #004761; padding-bottom: .4rem; }
+h2 { color: #004761; margin-top: 1.6em; }
+a { color: #0f864c; text-decoration-thickness: .06em; text-underline-offset: .15em; }
+a:hover, a:focus-visible { text-decoration-thickness: .15em; }
+strong { font-weight: 700; }
+li { margin: .5em 0; }
+img { max-width: 100%; height: auto; }
+nav { border-bottom: 1px solid #ccd3d7; padding-bottom: .6rem; font-size: .9em; }
+i.xwing-miniatures-font { font-weight: normal; line-height: 1; }
+@media (max-width: 40rem) {
+  body { --frame-width: 20px; margin: 0; min-height: 100vh; padding: .75rem; }
+}
+@media print { :root { background: white; } body { margin: 0; padding: 0; } nav { display: none; } }

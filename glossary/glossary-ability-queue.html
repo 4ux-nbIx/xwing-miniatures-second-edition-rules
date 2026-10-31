@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABILITY QUEUE</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<nav aria-label="Rules navigation"><a href="../index.html">Rules Reference</a></nav>
+<main><h1><strong>ABILITY QUEUE</strong></h1>
+<p>The <strong>ability queue</strong> is used to resolve the timing of multiple <a href="glossary-abilities.html">abilities</a> that trigger during the same timing window. Abilities are resolved from the front of the queue to the back of the queue. These abilities are added to the back of the ability queue using the following rules:</p>
+<ol>
+<li>
+<p>If both players have abilities that triggered from the same event, the abilities are added to the ability queue in player order.</p>
+</li>
+<li>
+<p>If a player has multiple abilities that triggered from the same event, that player chooses the order that those abilities are added to the ability queue.</p>
+</li>
+<li>
+<p>If resolving an effect from the ability queue triggers additional effects, they are added to the front of the ability queue using the above rules.</p>
+</li>
+</ol>
+<p>See <a href="../Rules%20Reference%20v1.4.6-1.pdf#page=24">Appendix</a> for 2 examples of the ability queue.</p>
+<ul>
+<li>
+<p>If there are game effects that share the same timing window as a player’s ability, the game effect is resolved first.</p>
+<ul>
+<li>For example, if a ship performs a red barrel roll and the ship has an ability that triggers after it performs a barrel roll, the ship gains a stress token before the other ability is resolved.</li>
+</ul>
+</li>
+<li>
+<p>If an ability’s requirements are not met, it cannot be added to the ability queue. For example, at the start of the Engagement Phase, if a ship has an ability that requires it to be tractored, but that ship is not tractored, that ability cannot be added to the queue. The ship cannot add the ability to the queue even if another ability also added to the queue at the start of the Engagement Phase would cause that ship to become tractored upon its resolution.</p>
+</li>
+<li>
+<p>If a ship would be removed while there are one or more abilities in the queue, do not remove that ship until there are no abilities in the queue.</p>
+</li>
+</ul></main>
+</body>
+</html>
