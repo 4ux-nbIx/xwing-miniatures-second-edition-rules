@@ -4,6 +4,8 @@
 body {
   --frame-width: 30px;
   --frame-height: 70px;
+  /* The 530px corner slice includes white space beyond the 90px visible rim. */
+  --frame-inset: calc(var(--frame-height) * 90 / 530);
   position: relative;
   isolation: isolate;
   box-sizing: border-box;
@@ -12,7 +14,7 @@ body {
   height: calc(100dvh - 4rem);
   margin: 2rem auto;
   border: solid transparent;
-  border-width: var(--frame-height) var(--frame-width);
+  border-width: var(--frame-inset) var(--frame-width);
   background: white;
   font-family: "Eurostile", "Arial Narrow", "Liberation Sans Narrow", Arial, sans-serif;
   font-size: 1.1rem;
@@ -21,7 +23,7 @@ body {
 body::before {
   content: "";
   position: absolute;
-  inset: calc(-1 * var(--frame-height)) calc(-1 * var(--frame-width));
+  inset: calc(-1 * var(--frame-inset)) calc(-1 * var(--frame-width));
   z-index: -1;
   pointer-events: none;
   border: solid transparent;
@@ -79,8 +81,13 @@ i:is(.xwing-miniatures-font-forcecharge, .xwing-miniatures-font-forcepower,
   nav { display: none; }
   body { --frame-width: 10px; margin: 0; height: 100vh; height: 100dvh; font-size: 1rem; }
   .page-content { padding: .375rem; }
-  ul { padding-inline-start: 20px; }
-  ul > li { margin: .25em 0; }
+  p, ul, ol { margin-block: calc(1em / 3); }
+  ul, ol { margin-inline: 0; padding-inline-start: 0; list-style-position: inside; }
+  li { margin-block: calc(.5em / 3); }
+  ul > li { margin-block: calc(.25em / 3); }
+  li:has(> p) { margin-block: calc(1em / 3); }
+  /* Keep inside markers on the same line as paragraph-wrapped list text. */
+  li > p:first-child { display: inline; }
 }
 @media print {
   :root { background: white; overflow: visible; }

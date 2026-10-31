@@ -108,15 +108,19 @@ and printing. Page titles are black without an underline, and pages omit the
 navigation header on narrow screens and when printing. Above 40rem, the header
 includes a Rules Reference home link. Rule subsection headings use #004761.
 Inline icons are 20% smaller and use token-specific colors.
-Narrow screens use smaller body text, half the previous page inset, and half
-the default bullet indentation and item spacing.
+Narrow screens use smaller body text and half the previous page inset.
+Paragraph and list spacing is reduced to one third of the previous mobile values.
+Bullet and numbered lists have no left indentation; their markers align with
+the preceding paragraph's left edge.
 
 Every HTML page uses graphical margins extracted from the PDF's physical page 3.
 Only its full-page background image is rendered, clipped to the visible page area;
 rules, copyright text, and page numbers are excluded. CSS `border-image` applies
 the extracted `docs/assets/page-frame.png` as a nine-slice frame. Each corner uses
 590×530 source pixels, preserving the diagonal lines at the top right and bottom
-left. Corners scale uniformly to the 70-pixel top and bottom frame height.
+left. Corners scale uniformly to a 70-pixel artwork height. The visible rim occupies
+only 90 of the 530 source pixels, so content clips about 12 pixels from each
+edge rather than reserving the entire artwork height.
 The frame stays within the viewport; content scrolls inside it and clips at its
 inner edges. Desktop layout retains its 70rem maximum width, 30-pixel side inset,
 and horizontal content padding. Narrow screens use a 10-pixel side inset.

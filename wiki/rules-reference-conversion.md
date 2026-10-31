@@ -23,7 +23,7 @@ sources:
     title: Pinned X-Wing Miniatures Font
 generated:
   by: process:project-wiki-publish
-  at: 2026-10-31T19:32:38.912Z
+  at: 2026-10-31T19:47:11.741Z
 ---
 # Rules Reference Conversion
 
@@ -81,9 +81,9 @@ The bundled X-Wing Miniatures Font is pinned to commit `2664d8e9efffd4f1f7a0feac
 
 Every HTML document uses `docs/assets/page-frame.png`, extracted from physical page 3 at 216 dpi (1836×2376 pixels). A temporary copy retains only the background form's first marked-content artifact, excluding rules, copyright text, and page numbers. Rendering clips bleed to the visible page. Keep the original image transformation and graphics state, and restore the CMYK transparency group omitted by `insert_pdf`; raw image extraction and reinsertion changes rendered colors. The source PDF is not modified. Missing margin artwork stops conversion before replacing generated files.[^converter]
 
-CSS `border-image` uses 530-pixel vertical slices and 590-pixel horizontal slices, retaining the full 590×530 source-pixel corner regions containing diagonal graphics. Corners scale uniformly to the 70px top and bottom frame height. Only middle edge sections stretch around the viewport. The viewport-sized body keeps the frame visible while a focusable, labeled `.page-content` region scrolls and clips navigation and main content inside the frame. Desktop layout retains its 70rem maximum width, 30px side insets, 1rem/1.5rem vertical/horizontal content padding, and 2rem outer margins; outside background is #030404. Dynamic viewport height follows mobile browser controls, with a vh fallback. Print resets content height and overflow so all rules print. Frame extraction and illustration crops remain unchanged.[^styling][^converter]
+CSS `border-image` uses 530-pixel vertical slices and 590-pixel horizontal slices, retaining the full 590×530 source-pixel corner regions containing diagonal graphics. Corners scale uniformly to a 70px artwork height. Most of the 530-source-pixel corner slice is white space; the visible rim occupies about 90 source pixels. The content clipping inset therefore uses 70 * 90 / 530, about 11.89px at the top and bottom, independently of artwork height. Only middle edge sections stretch around the viewport. The viewport-sized body keeps the frame visible while a focusable, labeled `.page-content` region scrolls and clips navigation and main content inside the frame. Desktop layout retains its 70rem maximum width, 30px side insets, 1rem/1.5rem vertical/horizontal content padding, and 2rem outer margins; outside background is #030404. Dynamic viewport height follows mobile browser controls, with a vh fallback. Print resets content height and overflow so all rules print. Frame extraction and illustration crops remain unchanged.[^styling][^converter]
 
-At viewport widths up to 40rem, body text uses 1rem instead of the desktop 1.1rem, side insets are 10px, and outer margins are zero. The top and bottom frame remain 70px high. Content padding is .375rem. Bullet lists use 20px indentation and .25em vertical item margins.[^styling]
+At viewport widths up to 40rem, body text uses 1rem instead of the desktop 1.1rem, side insets are 10px, and outer margins are zero. Frame artwork remains 70px high while the top and bottom content clipping insets are about 11.89px. Content padding is .375rem. Paragraph and list-container margins are 1em/3. Tight bullet-item margins are .25em/3; tight numbered-item margins are .5em/3. Paragraph-wrapped items use 1em/3 margins, replacing their former paragraph-sized gaps. Bullet and numbered lists have zero inline margins and padding, with inside markers aligned to the paragraph left edge. The first paragraph in a list item is inline so its marker shares the text line.[^styling]
 
 The margin regression check compares sampled top and side pixels with the rendered source PDF and confirms the frame interior is white. Existing illustration preservation checks remain applicable.[^checks]
 
