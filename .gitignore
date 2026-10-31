@@ -1,0 +1,5 @@
+# Project Wiki work-in-progress
+wiki/.work-in-progress
+.venv/
+__pycache__/
+Rules Reference v1.4.6-1.pdf
