@@ -127,6 +127,33 @@ Vendored assets are pinned to upstream commit
 the unused ship font is omitted. `web/style.css` supplies document styling.
 Python-Markdown renders the existing paragraph and list structure into HTML.
 
+## Install on a phone
+
+Deploy `docs/` through GitHub Pages over HTTPS. The site includes a web app
+manifest, favicon, Apple touch icon, and maskable 192px and 512px app icons.
+Relative URLs support both a repository subpath and a custom domain.
+
+- Android Chrome: open the site and use **Install app** or **Add to Home screen**
+  from the browser menu.
+- iPhone/iPad Safari: open the site, tap **Share**, then **Add to Home Screen**.
+  Enable **Open as Web App** if offered.
+
+Keep the first visit online while the service worker downloads the Introduction,
+Glossary, illustrations, styles, and fonts. These remain available offline after
+the download completes. The 74 MB source PDF is excluded from the offline cache;
+appendix links require a connection. Browser storage eviction can remove offline
+content; revisit online to restore it.
+
+Each conversion generates a content-versioned service worker. Updates download
+as a complete bundle and activate after all open app windows and site tabs close.
+Reopen the app to use the new version. Opening HTML directly from disk still
+works, but installation and service workers require HTTPS (or localhost for testing).
+To preview locally, run `python -m http.server --directory docs`, then open
+`http://localhost:8000`. Run service worker checks with `node --test tests/test_pwa.cjs`.
+
+PWA source assets live in `web/` and are copied during conversion. The original
+vector icon is `web/icons/icon.svg`; PNG sizes and `web/favicon.ico` derive from it.
+
 ## Verification and limits
 
 Tests cover every generated local link, image, and explicit subsection anchor;

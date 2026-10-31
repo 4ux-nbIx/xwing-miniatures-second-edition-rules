@@ -4,6 +4,8 @@ import argparse
 from dataclasses import dataclass, field
 from itertools import groupby
 from html import escape
+import hashlib
+import json
 import os
 from pathlib import Path
 import re
@@ -396,8 +398,19 @@ def html_document(text, title, current, root):
         parts[i] = re.sub(r'\[([a-z-]+)\]', html_icon, parts[i])
     stylesheet = relative_url(str(root / "style.css"), current)
     index = relative_url(str(root / "index.html"), current)
+    manifest = relative_url(str(root / "manifest.webmanifest"), current)
+    favicon = relative_url(str(root / "favicon.ico"), current)
+    icon = relative_url(str(root / "icons/icon.svg"), current)
+    touch_icon = relative_url(str(root / "icons/apple-touch-icon.png"), current)
+    script = relative_url(str(root / "pwa.js"), current)
     return (f'<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
             f'<meta name="viewport" content="width=device-width, initial-scale=1">\n'
+            f'<meta name="theme-color" content="#004761">\n'
+            f'<link rel="manifest" href="{manifest}">\n'
+            f'<link rel="icon" href="{favicon}" sizes="32x32">\n'
+            f'<link rel="icon" href="{icon}" type="image/svg+xml">\n'
+            f'<link rel="apple-touch-icon" href="{touch_icon}">\n'
+            f'<script src="{script}" defer></script>\n'
             f'<title>{escape(title)}</title>\n<link rel="stylesheet" href="{stylesheet}">\n'
             f'</head>\n<body>\n<nav aria-label="Rules navigation"><a href="{index}">Rules Reference</a></nav>\n'
             f'<main>{"".join(parts)}</main>\n</body>\n</html>\n')
@@ -506,6 +519,19 @@ def convert(source, output):
                 crop_page.get_pixmap(matrix=pymupdf.Matrix(3, 3), clip=clip).save(asset)
         for asset in assets:
             web_assets[Path("assets") / asset.name] = asset.read_bytes()
+        # Version the offline bundle by content so each deployment installs atomically.
+        offline = {p.relative_to(output / "docs").as_posix(): text.encode("utf-8")
+                   for p, text in files.items() if p.suffix == ".html"}
+        offline.update({p.as_posix(): data for p, data in web_assets.items()
+                        if p.suffix != ".pdf" and p.name != "sw.js"})
+        digest = hashlib.sha256()
+        for name, data in sorted(offline.items()):
+            digest.update(name.encode("utf-8") + b"\0" + data)
+        digest.update(web_assets[Path("sw.js")])
+        worker = web_assets[Path("sw.js")].decode("utf-8")
+        worker = worker.replace("__VERSION__", digest.hexdigest()[:16])
+        worker = worker.replace("__PRECACHE__", json.dumps(sorted(offline)))
+        web_assets[Path("sw.js")] = worker.encode("utf-8")
         for path, text in files.items():
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(text, encoding="utf-8")

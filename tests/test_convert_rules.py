@@ -1,5 +1,6 @@
 from pathlib import Path
 from html.parser import HTMLParser
+import json
 import re
 import shutil
 import tempfile
@@ -264,6 +265,34 @@ class ConversionTests(unittest.TestCase):
         text = inline_text(spans, {}, self.index, SOURCE, html=True)
         self.assertIn('<span style="color: #004761">&lt;test&gt; &amp;</span>', text)
         self.assertIn('<strong>bold</strong>', text)
+
+    def test_pwa_bundle_covers_every_rule_and_uses_relative_urls(self):
+        root = self.root / 'docs'
+        manifest = json.loads((root / 'manifest.webmanifest').read_text())
+        self.assertEqual(manifest['start_url'], './index.html')
+        self.assertEqual(manifest['scope'], './')
+        self.assertEqual(manifest['id'], './')
+        self.assertEqual(manifest['display'], 'standalone')
+        for icon in manifest['icons']:
+            image = pymupdf.Pixmap(root / icon['src'])
+            self.assertEqual(icon['sizes'], f'{image.width}x{image.height}')
+            self.assertIn('maskable', icon['purpose'])
+        touch = pymupdf.Pixmap(root / 'icons/apple-touch-icon.png')
+        self.assertEqual((touch.width, touch.height), (180, 180))
+        worker = (root / 'sw.js').read_text()
+        self.assertNotIn('__VERSION__', worker)
+        precache = json.loads(re.search(r'const PRECACHE = (.*);', worker)[1])
+        expected = {p.relative_to(root).as_posix() for p in root.rglob('*')
+                    if p.is_file() and p.suffix != '.pdf' and p.name != 'sw.js'}
+        self.assertEqual(set(precache), expected)
+        for page in root.rglob('*.html'):
+            elements = HtmlContent(page.read_text(encoding='utf-8')).elements
+            links = {attrs.get('rel'): attrs['href'] for tag, attrs in elements if tag == 'link'}
+            self.assertEqual((page.parent / links['manifest']).resolve(),
+                             (root / 'manifest.webmanifest').resolve())
+            scripts = [attrs['src'] for tag, attrs in elements if tag == 'script']
+            self.assertEqual(len(scripts), 1)
+            self.assertEqual((page.parent / scripts[0]).resolve(), (root / 'pwa.js').resolve())
 
     def test_html_folder_is_portable_without_other_output_or_source_files(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <title>X-Wing Rules Reference</title>
+  <path fill="#004761" d="M0 0h512v512H0z"/>
+  <circle cx="256" cy="256" r="158" fill="none" stroke="#83adba" stroke-width="8"/>
+  <path d="m150 157 212 198m0-198L150 355" fill="none" stroke="#e9ecee" stroke-width="28"/>
+  <path d="M256 117 232 286l24 70 24-70z" fill="#fff"/>
+  <path d="M245 227h22v64h-22z" fill="#c94738"/>
+  <path d="M130 139v58m252-58v58M130 315v58m252-58v58" stroke="#fff" stroke-width="12"/>
+</svg>

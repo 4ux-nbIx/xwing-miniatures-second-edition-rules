@@ -23,7 +23,7 @@ sources:
     title: Pinned X-Wing Miniatures Font
 generated:
   by: process:project-wiki-publish
-  at: 2026-10-31T17:54:57.191Z
+  at: 2026-10-31T18:06:26.019Z
 ---
 # Rules Reference Conversion
 
@@ -66,6 +66,8 @@ To place artwork immediately after a heading, its insertion anchor must also pre
 Nearby prose is removed from a temporary PDF page before rendering overlapping crop margins. Underlying raster and vector artwork is retained; the original PDF is not saved or modified. Keep the generated asset directory with the section folders and index. Illustration text remains raster content rather than searchable Markdown.[^converter]
 
 ## HTML styling and icons
+
+For phone installation, app icons, and offline caching, see [Rules Reference PWA](rules-reference-pwa.md).
 
 Both generated output folders are self-contained. Copy `docs/` alone and open `index.html`, or copy `markdown/` alone and open `index.md`. All generated local links stay inside the respective folder. HTML includes stylesheets, frame image, icon font, and font license. Crops are rendered once in `markdown/assets/` and copied into `docs/assets/`. Relocation regression checks copy each format to a separate directory and validate local references and anchors; HTML checks also cover CSS resources. Bundled PDFs and illustration copies are compared by bytes.[^converter][^checks]
 

@@ -1,0 +1,16 @@
+{
+  "id": "./",
+  "name": "X-Wing Rules Reference",
+  "short_name": "X-Wing Rules",
+  "description": "Second edition X-Wing rules: Introduction and Glossary, available offline.",
+  "lang": "en",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#e9ecee",
+  "theme_color": "#004761",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
