@@ -105,7 +105,9 @@ HTML uses condensed sans-serif body text, heavy geometric headings, source text
 colors, and green rule links. Local font stacks approximate Eurostile and Bank
 Gothic; those commercial fonts are not bundled. Layout adapts to narrow screens
 and printing. Page titles are black without an underline, and pages omit the
-navigation header. Inline icons are 20% smaller and use token-specific colors.
+navigation header on narrow screens and when printing. Above 40rem, the header
+includes a Rules Reference home link. Rule subsection headings use #004761.
+Inline icons are 20% smaller and use token-specific colors.
 Narrow screens use smaller body text, half the previous page inset, and half
 the default bullet indentation and item spacing.
 
@@ -114,10 +116,13 @@ Only its full-page background image is rendered, clipped to the visible page are
 rules, copyright text, and page numbers are excluded. CSS `border-image` applies
 the extracted `docs/assets/page-frame.png` as a nine-slice frame. Each corner uses
 590×530 source pixels, preserving the diagonal lines at the top right and bottom
-left. Corners scale uniformly with the rim; only the middle edges stretch around
-the full content height. A decorative layer behind the text keeps the large
-corners from covering content or adding excess padding. The border is
-30 pixels wide on desktop and 10 pixels on narrow screens. The center stays white.
+left. Corners scale uniformly to the 70-pixel top and bottom frame height.
+The frame stays within the viewport; content scrolls inside it and clips at its
+inner edges. Desktop layout retains its 70rem maximum width, 30-pixel side inset,
+and horizontal content padding. Narrow screens use a 10-pixel side inset.
+The center stays white; the surrounding desktop background is #030404.
+Dynamic viewport height follows mobile browser controls. Print layout expands
+the content so scrolling does not hide printed rules.
 
 Inline tags such as `[bank-left]` become accessible icons using
 [geordanr/xwing-miniatures-font](https://github.com/geordanr/xwing-miniatures-font).

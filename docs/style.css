@@ -1,16 +1,18 @@
 @import url("vendor/xwing-miniatures-font/xwing-miniatures.css");
 
-:root { color: #231f20; background: #e9ecee; }
+:root { color: #231f20; background: #030404; overflow: hidden; }
 body {
   --frame-width: 30px;
+  --frame-height: 70px;
   position: relative;
   isolation: isolate;
   box-sizing: border-box;
   max-width: 70rem;
-  min-height: calc(100vh - 4rem);
+  height: calc(100vh - 4rem);
+  height: calc(100dvh - 4rem);
   margin: 2rem auto;
-  border: var(--frame-width) solid transparent;
-  padding: 1rem 1.5rem;
+  border: solid transparent;
+  border-width: var(--frame-height) var(--frame-width);
   background: white;
   font-family: "Eurostile", "Arial Narrow", "Liberation Sans Narrow", Arial, sans-serif;
   font-size: 1.1rem;
@@ -19,13 +21,20 @@ body {
 body::before {
   content: "";
   position: absolute;
-  inset: calc(-1 * var(--frame-width));
+  inset: calc(-1 * var(--frame-height)) calc(-1 * var(--frame-width));
   z-index: -1;
   pointer-events: none;
   border: solid transparent;
-  /* Preserve 590×530 source-pixel corners at the same scale as the 90-pixel rim. */
-  border-width: calc(var(--frame-width) * 530 / 90) calc(var(--frame-width) * 590 / 90);
+  /* Preserve 590×530 source-pixel corners with uniform scaling to the frame height. */
+  border-width: var(--frame-height) calc(var(--frame-height) * 590 / 530);
   border-image: url("assets/page-frame.png") 530 590 stretch;
+}
+.page-content {
+  box-sizing: border-box;
+  height: 100%;
+  overflow: auto;
+  padding: 1rem 1.5rem;
+  background: white;
 }
 h1, h2 {
   font-family: "Eurostile", "Bank Gothic", "Arial Black", sans-serif;
@@ -40,16 +49,17 @@ a:hover, a:focus-visible { text-decoration-thickness: .15em; }
 strong { font-weight: 700; }
 li { margin: .5em 0; }
 img { max-width: 100%; height: auto; }
+nav { border-bottom: 1px solid #ccd3d7; padding-bottom: .6rem; font-size: .9em; }
 i.xwing-miniatures-font { font-size: 1.2em; font-weight: normal; line-height: 1; }
 i:is(.xwing-miniatures-font-focus, .xwing-miniatures-font-evade,
      .xwing-miniatures-font-calculate, .xwing-miniatures-font-reinforce,
      .xwing-miniatures-font-token-focus, .xwing-miniatures-font-token-evade,
      .xwing-miniatures-font-token-calculate, .xwing-miniatures-font-token-reinforce,
-     .xwing-miniatures-font-token-reinforceaft) { color: #79B85C; }
+     .xwing-miniatures-font-token-reinforceaft) { color: #4F8535; }
 i:is(.xwing-miniatures-font-jam, .xwing-miniatures-font-token-jam,
-     .xwing-miniatures-font-token-disarm, .xwing-miniatures-font-token-tractor) { color: #FF9233; }
+     .xwing-miniatures-font-token-disarm, .xwing-miniatures-font-token-tractor) { color: #C46312; }
 i:is(.xwing-miniatures-font-cloak, .xwing-miniatures-font-token-cloak,
-     .xwing-miniatures-font-shield, .xwing-miniatures-font-token-shield) { color: #5CB8CA; }
+     .xwing-miniatures-font-shield, .xwing-miniatures-font-token-shield) { color: #287F91; }
 i:is(.xwing-miniatures-font-lock, .xwing-miniatures-font-token-lock,
      .xwing-miniatures-font-token-stress, .xwing-miniatures-font-token-strain,
      .xwing-miniatures-font-token-deplete, .xwing-miniatures-font-token-ion,
@@ -58,16 +68,23 @@ i:is(.xwing-miniatures-font-lock, .xwing-miniatures-font-token-lock,
      .xwing-miniatures-font-fullfrontarc, .xwing-miniatures-font-fullreararc,
      .xwing-miniatures-font-bullseyearc, .xwing-miniatures-font-singleturretarc,
      .xwing-miniatures-font-doubleturretarc, .xwing-miniatures-font-rangebonusindicator,
-     .xwing-miniatures-font-token-crit) { color: #E4002B; }
+     .xwing-miniatures-font-token-crit) { color: #C40025; }
 i:is(.xwing-miniatures-font-charge, .xwing-miniatures-font-token-charge,
-     .xwing-miniatures-font-energy, .xwing-miniatures-font-recurring,
+     .xwing-miniatures-font-recurring,
      .xwing-miniatures-font-doublerecurring, .xwing-miniatures-font-triplerecurring,
-     .xwing-miniatures-font-negativerecurring) { color: #FFFF00; }
+     .xwing-miniatures-font-negativerecurring) { color: #A07800; }
 i:is(.xwing-miniatures-font-forcecharge, .xwing-miniatures-font-forcepower,
-     .xwing-miniatures-font-token-force) { color: #C399CC; }
+     .xwing-miniatures-font-token-force, .xwing-miniatures-font-energy) { color: #875392; }
 @media (max-width: 40rem) {
-  body { --frame-width: 10px; margin: 0; min-height: 100vh; padding: .375rem; font-size: 1rem; }
+  nav { display: none; }
+  body { --frame-width: 10px; margin: 0; height: 100vh; height: 100dvh; font-size: 1rem; }
+  .page-content { padding: .375rem; }
   ul { padding-inline-start: 20px; }
   ul > li { margin: .25em 0; }
 }
-@media print { :root { background: white; } body { margin: 0; padding: 0; } }
+@media print {
+  :root { background: white; overflow: visible; }
+  body { margin: 0; height: auto; }
+  .page-content { height: auto; overflow: visible; padding: 0; }
+  nav { display: none; }
+}

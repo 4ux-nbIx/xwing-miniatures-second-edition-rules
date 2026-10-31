@@ -226,7 +226,13 @@ class ConversionTests(unittest.TestCase):
         self.assertEqual(len(pages), len(self.files))
         for page in pages:
             parsed = HtmlContent(page.read_text(encoding='utf-8'))
-            self.assertFalse(any(tag == 'nav' for tag, _ in parsed.elements), page)
+            self.assertIn(('div', {'class': 'page-content', 'tabindex': '0',
+                                   'role': 'region', 'aria-label': 'Scrollable rules'}),
+                          parsed.elements, page)
+            self.assertEqual([attrs for tag, attrs in parsed.elements if tag == 'nav'],
+                             [{'aria-label': 'Rules navigation'}], page)
+            home = 'index.html' if page == root / 'index.html' else '../index.html'
+            self.assertIn(('a', {'href': home}), parsed.elements, page)
             self.assertFalse(any(tag in {'pre', 'code'} for tag, _ in parsed.elements), page)
             text = ''.join(parsed.text)
             original = self.files[page.relative_to(root).with_suffix('.md').as_posix()]
