@@ -273,6 +273,13 @@ class ConversionTests(unittest.TestCase):
         self.assertIn('<span style="color: #004761">&lt;test&gt; &amp;</span>', text)
         self.assertIn('<strong>bold</strong>', text)
 
+    def test_html_subsection_target_is_on_heading_without_spacer_paragraph(self):
+        text = '# Title\n\n<a id="section"></a>\n\n## Section\n\nBody'
+        page = html_document(text, 'Title', self.index, self.index.parent)
+        self.assertIn('<h2 id="section">Section</h2>', page)
+        self.assertNotIn('<p><a id="section">', page)
+        self.assertIn('<p>Body</p>', page)
+
     def test_pwa_bundle_covers_every_rule_and_uses_relative_urls(self):
         root = self.root / 'docs'
         manifest = json.loads((root / 'manifest.webmanifest').read_text())

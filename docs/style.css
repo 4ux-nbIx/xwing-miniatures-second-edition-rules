@@ -1,5 +1,27 @@
 @import url("vendor/xwing-miniatures-font/xwing-miniatures.css");
 
+@font-face {
+  font-family: "Rajdhani";
+  src: url("vendor/typography/rajdhani-medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Rajdhani";
+  src: url("vendor/typography/rajdhani-bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Exo 2";
+  src: url("vendor/typography/exo2-extrabold.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root { color: #231f20; background: #030404; overflow: hidden; }
 body {
   --frame-width: 30px;
@@ -16,9 +38,10 @@ body {
   border: solid transparent;
   border-width: var(--frame-inset) var(--frame-width);
   background: white;
-  font-family: "Eurostile", "Arial Narrow", "Liberation Sans Narrow", Arial, sans-serif;
+  font-family: "Rajdhani", "Arial Narrow", "Liberation Sans Narrow", Arial, sans-serif;
+  font-weight: 500;
   font-size: 1.1rem;
-  line-height: 1.5;
+  line-height: 1.2;
 }
 body::before {
   content: "";
@@ -39,17 +62,24 @@ body::before {
   background: white;
 }
 h1, h2 {
-  font-family: "Eurostile", "Bank Gothic", "Arial Black", sans-serif;
+  font-family: "Exo 2", "Arial Black", sans-serif;
   font-weight: 800;
   line-height: 1.2;
   letter-spacing: .04em;
 }
-h1 { color: #000; font-size: 1.25em; }
-h2 { color: #004761; font-size: 1.1em; margin-top: 1.6em; }
+h1 { color: #000; font-size: 1.25em; margin: 0 0 .2em; }
+h2 { color: #004761; font-size: 1.1em; font-variant-caps: small-caps; margin: .75em 0 .15em; }
+h1 + h2 { margin-top: .2em; }
+h1 strong, h2 strong { font-weight: inherit; }
+p { margin: 0 0 1em; }
+ul, ol { margin: 1.1em 0; padding-inline-start: 1.6em; list-style-position: outside; }
+li { margin: 1.1em 0; }
+/* Keep outside markers on the same line as paragraph-wrapped list text. */
+li > p:first-child { margin-block-start: 0; }
+li > p:last-child { margin-block-end: 0; }
 a { color: #0f864c; text-decoration-thickness: .06em; text-underline-offset: .15em; }
 a:hover, a:focus-visible { text-decoration-thickness: .15em; }
 strong { font-weight: 700; }
-li { margin: .5em 0; }
 img { max-width: 100%; height: auto; }
 nav { border-bottom: 1px solid #ccd3d7; padding-bottom: .6rem; font-size: .9em; }
 i.xwing-miniatures-font { font-size: 1.2em; font-weight: normal; line-height: 1; }
@@ -81,11 +111,9 @@ i:is(.xwing-miniatures-font-forcecharge, .xwing-miniatures-font-forcepower,
   nav { display: none; }
   body { --frame-width: 10px; margin: 0; height: 100vh; height: 100dvh; font-size: 1rem; }
   .page-content { padding: .375rem; }
-  p, ul, ol { margin-block: calc(1em / 3); }
+  p { margin-block: 0 calc(1em / 3); }
+  ul, ol, li { margin-block: calc(1.1em / 3); }
   ul, ol { margin-inline: 0; padding-inline-start: 1.25em; list-style-position: outside; }
-  li { margin-block: calc(.5em / 3); }
-  ul > li { margin-block: calc(.25em / 3); }
-  li:has(> p) { margin-block: calc(1em / 3); }
   /* Keep outside markers beside the first paragraph without adding a top gap. */
   li > p:first-child { margin-block-start: 0; }
 }

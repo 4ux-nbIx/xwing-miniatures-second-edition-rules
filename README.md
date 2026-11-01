@@ -101,16 +101,21 @@ The `docs/` tree can be tracked by Git.
 
 ## HTML styling and icons
 
-HTML uses condensed sans-serif body text, heavy geometric headings, source text
-colors, and green rule links. Local font stacks approximate Eurostile and Bank
-Gothic; those commercial fonts are not bundled. Layout adapts to narrow screens
+HTML uses locally bundled Rajdhani Medium/Bold for condensed body text and
+Exo 2 ExtraBold for headings, selected against the Eurostile fonts on PDF page 2.
+Both are distributed under the SIL Open Font License; licenses and pinned source
+details live in `web/vendor/typography/`. Commercial PDF fonts are not bundled.
+Source text colors and green rule links are retained. Layout adapts to narrow screens
 and printing. Page titles are black without an underline, and pages omit the
 navigation header on narrow screens and when printing. Above 40rem, the header
 includes a Rules Reference home link. Rule subsection headings use #004761.
 Subsection headings are 10% larger than body text; page titles are 25% larger.
+Subsections use small capitals. Body line height is 1.2, matching the PDF's
+10.2pt baseline spacing for 8.5pt text. Paragraph gaps use 1em and list gaps
+use 1.1em for slightly more breathing room; headings sit close to the text that follows.
 Inline icons are 20% smaller and use token-specific colors.
 Narrow screens use smaller body text and half the previous page inset.
-Paragraph and list spacing is reduced to one third of the previous mobile values.
+Mobile paragraph and list gaps use one third of the desktop spacing.
 Bullet and numbered lists use native outside markers with a compact 1.25em
 hanging indent. Item text and wrapped lines stay to the right of the markers.
 Nested lists repeat the same indentation relative to their parent's text edge.

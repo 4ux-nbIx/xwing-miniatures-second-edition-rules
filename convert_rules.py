@@ -392,6 +392,8 @@ def render_blocks(blocks, targets, current, source, root, assets, html=False):
 
 def html_document(text, title, current, root):
     body = markdown.markdown(text, extensions=["sane_lists"])
+    # Keep subsection targets on headings rather than empty paragraphs that add spacing.
+    body = re.sub(r'<p><a id="([^"]+)"></a></p>\s*<h2>', r'<h2 id="\1">', body)
     # Replace symbols only in text, never inside link destinations or attributes.
     parts = re.split(r'(<[^>]+>)', body)
     for i in range(0, len(parts), 2):
