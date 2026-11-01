@@ -44,8 +44,8 @@ h1, h2 {
   line-height: 1.2;
   letter-spacing: .04em;
 }
-h1 { color: #000; }
-h2 { color: #004761; margin-top: 1.6em; }
+h1 { color: #000; font-size: 1.25em; }
+h2 { color: #004761; font-size: 1.1em; margin-top: 1.6em; }
 a { color: #0f864c; text-decoration-thickness: .06em; text-underline-offset: .15em; }
 a:hover, a:focus-visible { text-decoration-thickness: .15em; }
 strong { font-weight: 700; }

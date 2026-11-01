@@ -107,6 +107,7 @@ Gothic; those commercial fonts are not bundled. Layout adapts to narrow screens
 and printing. Page titles are black without an underline, and pages omit the
 navigation header on narrow screens and when printing. Above 40rem, the header
 includes a Rules Reference home link. Rule subsection headings use #004761.
+Subsection headings are 10% larger than body text; page titles are 25% larger.
 Inline icons are 20% smaller and use token-specific colors.
 Narrow screens use smaller body text and half the previous page inset.
 Paragraph and list spacing is reduced to one third of the previous mobile values.

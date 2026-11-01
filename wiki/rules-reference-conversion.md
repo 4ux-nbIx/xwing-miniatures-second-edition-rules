@@ -23,7 +23,7 @@ sources:
     title: Pinned X-Wing Miniatures Font
 generated:
   by: process:project-wiki-publish
-  at: 2026-11-01T10:17:55.508Z
+  at: 2026-11-01T10:21:52.273Z
 ---
 # Rules Reference Conversion
 
@@ -71,7 +71,7 @@ For phone installation, app icons, and offline caching, see [Rules Reference PWA
 
 Both generated output folders are self-contained. Copy `docs/` alone and open `index.html`, or copy `markdown/` alone and open `index.md`. All generated local links stay inside the respective folder. HTML includes stylesheets, frame image, icon font, and font license. Crops are rendered once in `markdown/assets/` and copied into `docs/assets/`. Relocation regression checks copy each format to a separate directory and validate local references and anchors; HTML checks also cover CSS resources. Bundled PDFs and illustration copies are compared by bytes.[^converter][^checks]
 
-HTML uses Python-Markdown to render the extracted paragraphs and lists. Inline emphasis, source text colors, green references, and subsection anchors are retained. Pages show a Rules Reference home navigation link above 40rem; the header is hidden at widths up to 40rem and when printing. Rule subsection headings use #004761. Page titles are black without an underline; inline font icons use 1.2em, 20% smaller than the vendored 1.5em default. `web/style.css` supplies responsive and print layouts, condensed sans-serif body text, and heavy geometric headings. Local font stacks approximate Eurostile and Bank Gothic; commercial source fonts are not bundled.[^converter][^styling]
+HTML uses Python-Markdown to render the extracted paragraphs and lists. Inline emphasis, source text colors, green references, and subsection anchors are retained. Pages show a Rules Reference home navigation link above 40rem; the header is hidden at widths up to 40rem and when printing. Rule subsection headings use #004761 and a 1.1em font size (10% above body text). Page titles are black without an underline and use 1.25em (25% above body text); inline font icons use 1.2em, 20% smaller than the vendored 1.5em default. `web/style.css` supplies responsive and print layouts, condensed sans-serif body text, and heavy geometric headings. Local font stacks approximate Eurostile and Bank Gothic; commercial source fonts are not bundled.[^converter][^styling]
 
 Font icons use green `#4F8535` for focus, evade, calculate, and reinforce; orange `#C46312` for jam, disarm, and tractor; blue `#287F91` for cloak and shield; red `#C40025` for lock, stress, strain, deplete, ion, geometric arcs, range bonus indicator, and critical markers; golden yellow `#A07800` for charges and recurring-charge symbols; and purple `#875392` for energy and force symbols. Hit and critical-hit result glyphs retain inherited text color. These CSS colors affect font icons; token illustrations remain raster crops.[^styling][^converter]
 
