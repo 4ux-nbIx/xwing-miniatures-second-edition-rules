@@ -132,8 +132,9 @@ The frame stays within the viewport; content scrolls inside it and clips at its
 inner edges. Desktop layout retains its 70rem maximum width, 30-pixel side inset,
 and horizontal content padding. Narrow screens use a 10-pixel side inset.
 The center stays white; the surrounding desktop background is #030404.
-Dynamic viewport height follows mobile browser controls. Print layout expands
-the content so scrolling does not hide printed rules.
+The frame anchors to the viewport edges rather than using `vh`/`dvh` heights,
+avoiding dependence on viewport-unit updates after mobile PWA navigation.
+Print layout expands the content so scrolling does not hide printed rules.
 
 Inline tags such as `[bank-left]` become accessible icons using
 [geordanr/xwing-miniatures-font](https://github.com/geordanr/xwing-miniatures-font).

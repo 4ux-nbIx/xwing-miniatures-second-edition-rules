@@ -28,13 +28,13 @@ body {
   --frame-height: 70px;
   /* The 530px corner slice includes white space beyond the 90px visible rim. */
   --frame-inset: calc(var(--frame-height) * 90 / 530);
-  position: relative;
+  /* Anchor the frame to viewport edges without relying on mobile viewport units. */
+  position: fixed;
+  inset: 2rem;
   isolation: isolate;
   box-sizing: border-box;
   max-width: 70rem;
-  height: calc(100vh - 4rem);
-  height: calc(100dvh - 4rem);
-  margin: 2rem auto;
+  margin: 0 auto;
   border: solid transparent;
   border-width: var(--frame-inset) var(--frame-width);
   background: white;
@@ -109,7 +109,7 @@ i:is(.xwing-miniatures-font-forcecharge, .xwing-miniatures-font-forcepower,
      .xwing-miniatures-font-token-force, .xwing-miniatures-font-energy) { color: #875392; }
 @media (max-width: 40rem) {
   nav { display: none; }
-  body { --frame-width: 10px; margin: 0; height: 100vh; height: 100dvh; font-size: 1rem; }
+  body { --frame-width: 10px; inset: 0; margin: 0; font-size: 1rem; }
   .page-content { padding: .375rem; }
   p { margin-block: 0 calc(1em / 3); }
   ul, ol, li { margin-block: calc(1.1em / 3); }
@@ -119,7 +119,7 @@ i:is(.xwing-miniatures-font-forcecharge, .xwing-miniatures-font-forcepower,
 }
 @media print {
   :root { background: white; overflow: visible; }
-  body { margin: 0; height: auto; }
+  body { position: static; margin: 0; height: auto; }
   .page-content { height: auto; overflow: visible; padding: 0; }
   nav { display: none; }
 }
