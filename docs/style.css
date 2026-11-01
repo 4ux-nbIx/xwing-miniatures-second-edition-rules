@@ -82,12 +82,12 @@ i:is(.xwing-miniatures-font-forcecharge, .xwing-miniatures-font-forcepower,
   body { --frame-width: 10px; margin: 0; height: 100vh; height: 100dvh; font-size: 1rem; }
   .page-content { padding: .375rem; }
   p, ul, ol { margin-block: calc(1em / 3); }
-  ul, ol { margin-inline: 0; padding-inline-start: 0; list-style-position: inside; }
+  ul, ol { margin-inline: 0; padding-inline-start: 1.25em; list-style-position: outside; }
   li { margin-block: calc(.5em / 3); }
   ul > li { margin-block: calc(.25em / 3); }
   li:has(> p) { margin-block: calc(1em / 3); }
-  /* Keep inside markers on the same line as paragraph-wrapped list text. */
-  li > p:first-child { display: inline; }
+  /* Keep outside markers beside the first paragraph without adding a top gap. */
+  li > p:first-child { margin-block-start: 0; }
 }
 @media print {
   :root { background: white; overflow: visible; }

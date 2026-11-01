@@ -110,8 +110,9 @@ includes a Rules Reference home link. Rule subsection headings use #004761.
 Inline icons are 20% smaller and use token-specific colors.
 Narrow screens use smaller body text and half the previous page inset.
 Paragraph and list spacing is reduced to one third of the previous mobile values.
-Bullet and numbered lists have no left indentation; their markers align with
-the preceding paragraph's left edge.
+Bullet and numbered lists use native outside markers with a compact 1.25em
+hanging indent. Item text and wrapped lines stay to the right of the markers.
+Nested lists repeat the same indentation relative to their parent's text edge.
 
 Every HTML page uses graphical margins extracted from the PDF's physical page 3.
 Only its full-page background image is rendered, clipped to the visible page area;
