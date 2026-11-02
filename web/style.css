@@ -55,6 +55,8 @@ body::before {
   border-image: url("assets/page-frame.png") 530 590 stretch;
 }
 .page-content {
+  display: flex;
+  flex-direction: column;
   box-sizing: border-box;
   height: 100%;
   overflow: auto;
@@ -85,7 +87,8 @@ img { max-width: 100%; height: auto; }
 figure { margin: 1em 0; width: fit-content; max-width: 100%; text-align: center; }
 figure img { display: block; margin: 0 auto; }
 .figure-right { float: right; width: var(--figure-width); max-width: 45%; margin: 0 0 .5em 1em; }
-main { display: flow-root; }
+main { display: flow-root; flex: 1 0 auto; }
+footer { flex-shrink: 0; margin-top: 1rem; color: #444; font-size: .625rem; line-height: 1.4; text-align: center; }
 h2 { clear: right; }
 figcaption { font-size: .8em; font-style: italic; }
 figcaption p { margin: .25em 0 0; }

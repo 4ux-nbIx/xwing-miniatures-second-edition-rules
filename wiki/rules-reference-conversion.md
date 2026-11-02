@@ -23,7 +23,7 @@ sources:
     title: Pinned X-Wing Miniatures Font
 generated:
   by: process:project-wiki-publish
-  at: 2026-11-02T20:54:36.583Z
+  at: 2026-11-02T21:09:09.995Z
 ---
 # Rules Reference Conversion
 
@@ -37,7 +37,7 @@ The `-o` argument accepts a parent directory for `docs/` and `markdown/`, defaul
 
 ## Structure and continuations
 
-The left column precedes the right. Font styles identify document parts, rule blocks, and subsections. Rules and paragraphs continue across columns and pages. Paragraphs, bold runs, numbered lists, and nested bullets are retained. Alphabetic substeps retain their original labels as nested bullets, such as `- **a.**`. Borders are excluded from extracted text and Markdown; HTML uses an extracted decorative frame. Footer copyright text and printed page numbers are excluded.[^converter]
+The left column precedes the right. Font styles identify document parts, rule blocks, and subsections. Rules and paragraphs continue across columns and pages. Paragraphs, bold runs, numbered lists, and nested bullets are retained. Alphabetic substeps retain their original labels as nested bullets, such as `- **a.**`. Borders are excluded from extracted text and Markdown; HTML uses an extracted decorative frame. Original footer copyright text and printed page numbers are excluded during extraction. Markdown omits copyright footers; generated HTML adds the shared notice described below.[^converter]
 
 Across page and column boundaries, a return to the unindented body margin ends an active list item. Body margins are x=36 in the left column and x=312 in the right, with one point tolerance. Indented list continuations still merge. This keeps Tractor's boost bullet separate from the following “This move cannot cause” paragraph on page 23.[^converter]
 
@@ -64,6 +64,8 @@ The converter renders all 78 illustrations from isolated PDF content as transpar
 See [Rules Reference Illustrations](rules-reference-illustrations.md) for group mappings, annotation preservation, transparent trimming, caption extraction, placement anchors, and the original two-image trial.
 
 ## HTML styling and icons
+
+Every generated HTML page, including the index, ends with a semantic footer containing “© & ™ Lucasfilm Ltd. The AMG logo is a ® of Atomic Mass Games.” The centered text uses .625rem, #444 on white, and 1.4 line height. A column flex layout places it at the bottom of short pages and after content on long pages, inside the scrolling region. The footer remains present when printing.[^converter][^styling]
 
 For phone installation, app icons, and offline caching, see [Rules Reference PWA](rules-reference-pwa.md).
 

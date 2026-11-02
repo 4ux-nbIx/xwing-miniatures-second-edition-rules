@@ -629,7 +629,9 @@ def html_document(text, title, current, root):
             f'<title>{escape(title)}</title>\n<link rel="stylesheet" href="{stylesheet}">\n'
             f'</head>\n<body>\n<div class="page-content" tabindex="0" role="region" aria-label="Scrollable rules">\n'
             f'<nav aria-label="Rules navigation"><a href="{index}">Rules Reference</a></nav>\n'
-            f'<main>{"".join(parts)}</main>\n</div>\n</body>\n</html>\n')
+            f'<main>{"".join(parts)}</main>\n'
+            f'<footer>© &amp; ™ Lucasfilm Ltd. The AMG logo is a ® of Atomic Mass Games.</footer>\n'
+            f'</div>\n</body>\n</html>\n')
 
 
 ICON_ALIASES = {

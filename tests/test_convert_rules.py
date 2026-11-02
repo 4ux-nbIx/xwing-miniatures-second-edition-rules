@@ -460,7 +460,11 @@ class ConversionTests(unittest.TestCase):
             self.assertIn(('a', {'href': home}), parsed.elements, page)
             self.assertFalse(any(tag in {'pre', 'code'} for tag, _ in parsed.elements), page)
             text = ''.join(parsed.text)
+            notice = '© & ™ Lucasfilm Ltd. The AMG logo is a ® of Atomic Mass Games.'
+            self.assertEqual([tag for tag, _ in parsed.elements if tag == 'footer'], ['footer'], page)
+            self.assertTrue(text.rstrip().endswith(notice), page)
             original = self.files[page.relative_to(root).with_suffix('.md').as_posix()]
+            self.assertNotIn(notice, original, page)
             # HTML must preserve every paragraph, including symbols and emphasis text.
             for paragraph in original.split('\n\n'):
                 if paragraph.startswith('<a ') or paragraph.startswith('!['):
