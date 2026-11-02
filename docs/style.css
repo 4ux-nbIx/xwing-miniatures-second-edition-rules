@@ -82,7 +82,11 @@ a:hover, a:focus-visible { text-decoration-thickness: .15em; }
 strong { font-weight: 700; }
 img { max-width: 100%; height: auto; }
 figure { margin: 1em 0; width: fit-content; max-width: 100%; text-align: center; }
-figcaption { font-size: .9em; }
+figure img { display: block; margin: 0 auto; }
+.figure-right { float: right; width: var(--figure-width); max-width: 45%; margin: 0 0 .5em 1em; }
+main { display: flow-root; }
+h2 { clear: right; }
+figcaption { font-size: .8em; font-style: italic; }
 figcaption p { margin: .25em 0 0; }
 nav { border-bottom: 1px solid #ccd3d7; padding-bottom: .6rem; font-size: .9em; }
 i.xwing-miniatures-font { font-size: 1.2em; font-weight: normal; line-height: 1; }
@@ -114,6 +118,7 @@ i:is(.xwing-miniatures-font-forcecharge, .xwing-miniatures-font-forcepower,
   nav { display: none; }
   body { --frame-width: 10px; inset: 0; margin: 0; font-size: 1rem; }
   .page-content { padding: .375rem; }
+  .figure-right { width: calc(var(--figure-width) * .7); max-width: 31.5%; }
   p { margin-block: 0 calc(1em / 3); }
   ul, ol, li { margin-block: calc(1.1em / 3); }
   ul, ol { margin-inline: 0; padding-inline-start: 1.25em; list-style-position: outside; }

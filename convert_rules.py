@@ -429,10 +429,10 @@ def organize(blocks, output, extension=".md"):
     return sections, targets
 
 
-def render_blocks(blocks, targets, current, source, root, assets, html=False):
+def render_blocks(blocks, targets, current, source, root, assets, html=False, image_sizes=None):
     rendered = []
     list_parent = False
-    for block in blocks:
+    for index, block in enumerate(blocks):
         if block.kind == "figure":
             box, description, captions = block.figure
             name = f"page-{block.page:02d}-{slug(description)}.png"
@@ -441,12 +441,20 @@ def render_blocks(blocks, targets, current, source, root, assets, html=False):
             linked_asset = root / "assets" / name
             url = relative_url(str(linked_asset), current)
             caption_text = [inline_text(spans, targets, current, source, html=html) for spans in captions]
-            if html and captions:
+            if html:
                 caption = "".join(f"<p>{text}</p>" for text in caption_text)
-                rendered.append(f'<figure><img src="{escape(url, quote=True)}" alt="{escape(description, quote=True)}">'
-                                f'<figcaption>{caption}</figcaption></figure>')
+                size = image_sizes[name] if image_sizes else None
+                small = size is not None and max(size) < 155
+                attributes = f' class="figure-right" style="--figure-width: {size[0]}px"' if small else ""
+                figure = (f'<figure{attributes}><img src="{escape(url, quote=True)}" alt="{escape(description, quote=True)}">'
+                          + (f'<figcaption>{caption}</figcaption>' if captions else "") + '</figure>')
+                # Deferred side artwork must precede its paragraph for text to wrap around it.
+                position = len(rendered)
+                if small and index and blocks[index - 1].kind == "paragraph" and not blocks[index - 1].prefix:
+                    position -= 1
+                rendered.insert(position, figure)
             else:
-                rendered.append("\n\n".join([f"![{description}]({url})", *caption_text]))
+                rendered.append("\n\n".join([f"![{description}]({url})", *(f"*{text}*" for text in caption_text)]))
         else:
             text = inline_text(block.spans, targets, current, source, html=html)
             if block.kind == "subsection":
@@ -542,7 +550,7 @@ def convert(source, output):
         if len(document) != 49 or document[1].rect != pymupdf.Rect(0, 0, 612, 792):
             raise ValueError("Expected the 49-page US Letter Rules Reference v1.4.6-1 PDF")
         blocks = extract_blocks(document)
-        files, assets = {}, {}
+        files, assets, illustrations, image_sizes = {}, {}, {}, {}
         for format, extension in (("markdown", ".md"), ("docs", ".html")):
             root = output / format
             html = extension == ".html"
@@ -552,29 +560,32 @@ def convert(source, output):
             toc = ["# Rules Reference v1.4.6-1"]
             for section in sections:
                 toc.append("## " + section["title"].title())
-                intro = render_blocks(section["intro"], targets, index, linked_source, root, assets, html=html)
+                intro = render_blocks(section["intro"], targets, index, linked_source, root, assets, html=html, image_sizes=image_sizes)
                 if intro:
                     toc.append(intro)
                 links = []
                 for rule in section["rules"]:
                     title = "".join(translated(s) for s in rule["title"].spans).strip()
                     heading = inline_text(rule["title"].spans, targets, rule["path"], linked_source, html=True) if html else title
-                    text = "# " + heading + "\n\n" + render_blocks(rule["blocks"], targets, rule["path"], linked_source, root, assets, html=html) + "\n"
+                    text = "# " + heading + "\n\n" + render_blocks(rule["blocks"], targets, rule["path"], linked_source, root, assets, html=html, image_sizes=image_sizes) + "\n"
                     files[rule["path"]] = html_document(text, title, rule["path"], root) if html else text
                     links.append(f"- [{escape(title) if html else title}]({relative_url(str(rule['path']), index)})")
                 toc.append("\n".join(links))
             text = "\n\n".join(toc) + "\n"
             files[index] = html_document(text, "Rules Reference v1.4.6-1", index, root) if html else text
+            if not html:
+                # Render only after text validation, so unmapped symbols cannot replace a good output.
+                # Render after Markdown text validation, before HTML needs trimmed PNG dimensions.
+                for asset, (page, box, description, captions) in assets.items():
+                    data = render_figure(document, page, FIGURE_GROUPS[page, description], box,
+                                         [s["bbox"] for spans in captions for s in spans])
+                    illustrations[asset] = data
+                    image = pymupdf.Pixmap(data)
+                    image_sizes[asset.name] = image.width, image.height
         # Read web resources before replacing any generated content.
         web_assets = {p.relative_to(WEB): p.read_bytes() for p in WEB.rglob("*") if p.is_file()}
         web_assets[Path("assets/page-frame.png")] = extract_page_frame(document)
         web_assets[Path(source.name)] = source.read_bytes()
-        # Render only after text validation, so unmapped symbols cannot replace a good output.
-        illustrations = {}
-        for asset, (page, box, description, captions) in assets.items():
-            illustrations[asset] = render_figure(
-                document, page, FIGURE_GROUPS[page, description], box,
-                [s["bbox"] for spans in captions for s in spans])
         for asset, data in illustrations.items():
             web_assets[Path("assets") / asset.name] = data
         # Version the offline bundle by content so each deployment installs atomically.

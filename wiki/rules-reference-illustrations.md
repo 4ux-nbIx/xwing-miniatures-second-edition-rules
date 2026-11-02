@@ -15,9 +15,12 @@ sources:
   - id: group-trial
     resource: experiments/extract_object_groups.py
     title: Original two-image trial
+  - id: styling
+    resource: web/style.css
+    title: HTML figure and caption styling
 generated:
   by: process:project-wiki-publish
-  at: 2026-11-02T08:45:48.908Z
+  at: 2026-11-02T10:14:48.206Z
 ---
 # Rules Reference Illustrations
 
@@ -41,7 +44,7 @@ All illustration bytes are rendered before generated output is written. Missing 
 
 ## Separate captions
 
-`figure_content` identifies 7–8.1-point EurostileLTStd-Cn caption lines within the configured `FIGURES` bounds. It joins centered wrapped lines across PDF blocks and keeps adjacent captions separate. Markdown renders caption paragraphs below images; HTML uses `figure`/`figcaption`. Emphasis and symbol tags are retained. Printed card text, diagram numbers, and check/cross glyphs stay in the graphics.[^converter]
+`figure_content` identifies 7–8.1-point EurostileLTStd-Cn caption lines within the configured `FIGURES` bounds. It joins centered wrapped lines across PDF blocks and keeps adjacent captions separate. Markdown renders italic caption paragraphs below images; HTML uses italic `figure`/`figcaption` content. Bold emphasis and symbol tags are retained. Printed card text, diagram numbers, and check/cross glyphs stay in the graphics.[^converter]
 
 When visible caption text is inside an isolated native group, text-only redaction removes it from the temporary page while retaining raster and vector artwork. The nested Victory Counters group requires this treatment. Captions remain searchable in both generated text formats. Keep each output's `assets/` directory with its section folders and index.[^artwork][^converter]
 
@@ -51,6 +54,10 @@ When visible caption text is inside an isolated native group, text-only redactio
 - Insertion anchors in `FIGURES` must follow the owning heading. The page 13 Fuse Marker anchor is y=292, after its heading at y=278.13. Its former y=265 anchor attached deferred artwork to Fully Execute.[^converter]
 - To place artwork immediately after a heading, the anchor must also precede the first body line. Page 13's Ion token anchor is y=273, between the heading's bottom at y=272.48 and prose at y=273.24. Otherwise paragraph deferral places the image after the opening paragraph.[^converter]
 
+HTML figures float right when both trimmed PNG dimensions are strictly below 155 pixels. The figure width uses the native PNG width, capped at 45% of available width. At viewport widths up to 40rem, figure width is 70% of native width and the cap is 31.5%, reducing both dimensions by 30%; captions wrap below the image inside the float using italic text at .8em. Larger figures retain block placement. Subsection headings clear right floats, and `main` contains them.[^converter][^styling]
+
+A small HTML figure deferred until an unindented paragraph ends is inserted before that paragraph so its text can wrap. Markdown retains the extraction order. On physical page 17, First Player Marker, Position Marker, and the primary weapon card crop qualify; player markers and the range diagram remain blocks.[^converter]
+
 ## Original two-image trial
 
 Run `.venv/bin/python experiments/extract_object_groups.py` from the repository root. This standalone trial writes transparent 216 dpi PNGs under `experiments/object-groups/`: `agility.png` (105×131) and `double-turret-arc-indicator.png` (198×182). It selects physical page 3 Figure MCID 296 and page 4 Figure MCID 503, retaining clipping paths, form calls, soft masks, and graphics states. Built-in assertions check retained card text, absent captions, transparent margins, and unchanged source PDF bytes. The trial retains its original bounds; production rendering additionally trims fully transparent margins.[^group-trial][^artwork]
@@ -59,3 +66,4 @@ Run `.venv/bin/python experiments/extract_object_groups.py` from the repository 
 [^artwork]: `figure_stream`, `isolate_figure`, and `render_figure`.
 [^checks]: `ConversionTests`, object-group coverage, caption preservation, composite comparisons, and failure preservation.
 [^group-trial]: `FIGURES`, `extract_group`, and `main`.
+[^styling]: HTML stylesheet, figure, figure-right, figcaption, heading clearing, and main containment.

@@ -23,7 +23,7 @@ sources:
     title: Pinned X-Wing Miniatures Font
 generated:
   by: process:project-wiki-publish
-  at: 2026-11-02T08:45:48.908Z
+  at: 2026-11-02T10:08:09.587Z
 ---
 # Rules Reference Conversion
 
@@ -43,7 +43,7 @@ Across page and column boundaries, a return to the unindented body margin ends a
 
 Unmarked paragraphs inside numbered steps retain four-space Markdown indentation when they start at least 12.5 points from the column body margin. This recognizes the source's 13.5-point substep margin with one point tolerance. Headings and new unmarked paragraphs outside this margin clear numbered context. Attack step 4's hit/miss paragraph remains inside the step as a separate paragraph following substep b.[^converter]
 
-Figure placement waits until an enclosing paragraph is complete, preventing side artwork from splitting prose. Regular-font body text includes the smaller position-marker prose as well as the usual 8.5-point text. Extraction placeholders and control artifacts are removed without changing the printed wording.[^converter]
+Markdown and large HTML figure placement wait until an enclosing paragraph is complete, preventing side artwork from splitting prose. Regular-font body text includes the smaller position-marker prose as well as the usual 8.5-point text. Extraction placeholders and control artifacts are removed without changing the printed wording.[^converter]
 
 ## Symbols and rule references
 
@@ -55,7 +55,7 @@ References outside the scope link to a bundled source PDF with `#page=N`: generi
 
 ## Illustrations and captions
 
-The converter renders all 44 illustrations from isolated PDF object groups as transparent 216 dpi PNGs. Original clipping paths, soft masks, form calls, and diagram annotations are retained. Page 2's pilot/ship abilities example and page 4's single-turret diagram keep embedded labels inside their images. Other captions are separate searchable Markdown paragraphs and HTML `figure`/`figcaption` content. Missing groups stop conversion before generated files are replaced.[^converter][^checks]
+The converter renders all 44 illustrations from isolated PDF object groups as transparent 216 dpi PNGs. Original clipping paths, soft masks, form calls, and diagram annotations are retained. Page 2's pilot/ship abilities example and page 4's single-turret diagram keep embedded labels inside their images. Other captions are separate searchable italic Markdown paragraphs and italic HTML `figure`/`figcaption` content. HTML figures whose trimmed PNG width and height are both below 155 pixels float right with captions underneath, allowing text to wrap beside them. Missing groups stop conversion before generated files are replaced.[^converter][^checks]
 
 See [Rules Reference Illustrations](rules-reference-illustrations.md) for group mappings, annotation preservation, transparent trimming, caption extraction, placement anchors, and the original two-image trial.
 

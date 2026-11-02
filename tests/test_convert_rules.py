@@ -12,7 +12,7 @@ import pymupdf
 
 from convert_rules import (
     SOURCE, SYMBOLS, TEXT_FLAGS, FIGURES, STOP_SECTION, COMPOSITE_FIGURES, FIGURE_GROUPS,
-    convert, extract_blocks, inline_text, translated, html_document, WEB, figure_content,
+    convert, extract_blocks, inline_text, translated, html_document, WEB, figure_content, Block, render_blocks,
 )
 from pdf_artwork import isolate_figure
 
@@ -230,8 +230,8 @@ class ConversionTests(unittest.TestCase):
 
     def test_captions_are_text_below_graphics_in_both_formats(self):
         ion = self.rule('ion')
-        self.assertEqual(ion.count('\n\nIon Token\n\n'), 1)
-        self.assertLess(ion.index('![Ion token]'), ion.index('\n\nIon Token'))
+        self.assertEqual(ion.count('\n\n*Ion Token*\n\n'), 1)
+        self.assertLess(ion.index('![Ion token]'), ion.index('\n\n*Ion Token*'))
         barrel = self.rule('barrel-roll')
         self.assertIn('A TIE fighter barrel rolls to the right and slightly forward, slightly backward, or straight across.', barrel)
         sideslip = self.rule('sideslip')
@@ -242,7 +242,7 @@ class ConversionTests(unittest.TestCase):
         self.assertIn('The TIE fighter is **within** range 1 of the X-wing.', range_text)
         self.assertIn('The TIE fighter is **beyond** range 1 of the X-wing.', range_text)
         html = (self.root / 'docs/glossary/glossary-ion.html').read_text()
-        self.assertRegex(html, r'<figure><img [^>]+><figcaption><p>Ion Token</p></figcaption></figure>')
+        self.assertRegex(html, r'<figure[^>]*><img [^>]+><figcaption><p>Ion Token</p></figcaption></figure>')
         html = (self.root / 'docs/glossary/glossary-primary-weapon.html').read_text()
         self.assertIn('<figcaption>', html)
         self.assertIn('aria-label="front-arc"', html)
@@ -279,6 +279,34 @@ class ConversionTests(unittest.TestCase):
         token = pymupdf.Pixmap(self.output / 'assets/page-13-ion-token.png')
         self.assertLess(token.height, (303.3 - 259) * 3 + 1)
 
+    def test_small_html_figures_wrap_text_with_captions_below(self):
+        for path in (self.root / 'docs').rglob('*.html'):
+            html = path.read_text()
+            for attributes, source in re.findall(r'<figure([^>]*)><img src="([^"]+)"', html):
+                image = pymupdf.Pixmap(path.parent / source)
+                self.assertEqual('figure-right' in attributes, max(image.width, image.height) < 155, source)
+        for rule, caption in [('player-order', 'First Player Marker'),
+                              ('position-marker', 'Position Marker'),
+                              ('primary-weapon', 'Primary')]:
+            html = (self.root / f'docs/glossary/glossary-{rule}.html').read_text()
+            figure = html.index('<figure class="figure-right"')
+            end = html.index('</figure>', figure)
+            self.assertIn(caption, ''.join(HtmlContent(html[figure:end]).text))
+            self.assertRegex(html[html.index('</h1>') + 5:figure], r'^\s*$')
+            self.assertRegex(html[end + len('</figure>'):], r'^\s*<p>')
+        css = (self.root / 'docs/style.css').read_text()
+        self.assertIn('font-style: italic', css[css.index('figcaption {'):])
+
+    def test_float_threshold_requires_both_dimensions_below_155(self):
+        root = Path('/output/docs')
+        block = Block('figure', page=17, figure=((0, 0, 10, 10), 'Marker', []))
+        for size in [(154, 154), (155, 100), (100, 155), (154, 200)]:
+            with self.subTest(size=size):
+                html = render_blocks([block], {}, root / 'index.html', SOURCE, root, {},
+                                     html=True, image_sizes={'page-17-marker.png': size})
+                self.assertEqual('figure-right' in html, max(size) < 155)
+                self.assertNotIn('<figcaption>', html)
+
     def test_left_sideslip_blue_arrow_survives_skipped_caption_clip_close(self):
         with pymupdf.open(SOURCE) as document:
             box = FIGURES[20][0][0]
@@ -295,11 +323,11 @@ class ConversionTests(unittest.TestCase):
 
     def test_ion_image_immediately_follows_heading(self):
         self.assertTrue(self.rule('ion').startswith(
-            '# ION\n\n![Ion token](../assets/page-13-ion-token.png)\n\nIon Token\n\nA ship is'))
+            '# ION\n\n![Ion token](../assets/page-13-ion-token.png)\n\n*Ion Token*\n\nA ship is'))
 
     def test_jam_image_immediately_follows_heading(self):
         self.assertTrue(self.rule('jam').startswith(
-            '# JAM ([jam])\n\n![Jam token](../assets/page-14-jam-token.png)\n\nJam Token\n\nPilots can jam'))
+            '# JAM ([jam])\n\n![Jam token](../assets/page-14-jam-token.png)\n\n*Jam Token*\n\nPilots can jam'))
 
     def test_fuse_marker_image_follows_its_heading(self):
         image = '![Fuse marker](../assets/page-13-fuse-marker.png)'

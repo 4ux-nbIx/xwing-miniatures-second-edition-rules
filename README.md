@@ -96,8 +96,11 @@ The `docs/` tree can be tracked by Git.
   isolated PDF object groups. Original clipping paths, soft masks, colors, and
   diagram annotations are retained; page backgrounds and nearby prose are excluded.
   Fully transparent margins are trimmed without cutting off artwork. Captions below artwork
-  are extracted as text in Markdown and HTML, retaining emphasis and symbol tags.
-  HTML groups images and captions in `figure`/`figcaption` elements. The page 2
+  are extracted as italic text in Markdown and HTML, retaining bold emphasis and symbol tags.
+  HTML groups images and captions in `figure`/`figcaption` elements. Images whose
+  trimmed PNG width and height are both below 155 pixels float right with their
+  captions underneath, allowing prose to wrap around them. On screens up to 40rem,
+  floating images shrink by 30%. Captions use 80% of the body font size. The page 2
   pilot/ship abilities example and page 4 single-turret diagram retain their embedded
   labels in the isolated artwork instead of extracting them as captions. Printed text and numbers on
   cards and diagrams remain part of the graphics. `FIGURE_GROUPS` maps the source
