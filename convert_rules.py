@@ -615,7 +615,7 @@ def html_document(text, title, current, root):
     index = relative_url(str(root / "index.html"), current)
     manifest = relative_url(str(root / "manifest.webmanifest"), current)
     favicon = relative_url(str(root / "favicon.ico"), current)
-    icon = relative_url(str(root / "icons/icon.svg"), current)
+    icon = relative_url(str(root / "icons/icon.png"), current)
     touch_icon = relative_url(str(root / "icons/apple-touch-icon.png"), current)
     script = relative_url(str(root / "pwa.js"), current)
     return (f'<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
@@ -623,7 +623,7 @@ def html_document(text, title, current, root):
             f'<meta name="theme-color" content="#004761">\n'
             f'<link rel="manifest" href="{manifest}">\n'
             f'<link rel="icon" href="{favicon}" sizes="32x32">\n'
-            f'<link rel="icon" href="{icon}" type="image/svg+xml">\n'
+            f'<link rel="icon" href="{icon}" type="image/png">\n'
             f'<link rel="apple-touch-icon" href="{touch_icon}">\n'
             f'<script src="{script}" defer></script>\n'
             f'<title>{escape(title)}</title>\n<link rel="stylesheet" href="{stylesheet}">\n'

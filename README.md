@@ -167,7 +167,7 @@ Python-Markdown renders the existing paragraph and list structure into HTML.
 ## Install on a phone
 
 Deploy `docs/` through GitHub Pages over HTTPS. The site includes a web app
-manifest, favicon, Apple touch icon, and maskable 192px and 512px app icons.
+manifest, favicon, Apple touch icon, and 192px and 512px app icons.
 Relative URLs support both a repository subpath and a custom domain.
 
 - Android Chrome: open the site and use **Install app** or **Add to Home screen**
@@ -188,8 +188,11 @@ works, but installation and service workers require HTTPS (or localhost for test
 To preview locally, run `python -m http.server --directory docs`, then open
 `http://localhost:8000`. Run service worker checks with `node --test tests/test_pwa.cjs`.
 
-PWA source assets live in `web/` and are copied during conversion. The original
-vector icon is `web/icons/icon.svg`; PNG sizes and `web/favicon.ico` derive from it.
+PWA source assets live in `web/` and are copied during conversion. The source
+icon is `web/icons/icon.png`; the 192px and 512px app icons, 180px Apple touch
+icon, and 32px `web/favicon.ico` derive from it. The PNG also serves as the
+favicon. App icons use purpose `any` because the artwork extends to the edges
+and would be cropped by a maskable icon shape.
 
 ## Verification and limits
 

@@ -519,7 +519,7 @@ class ConversionTests(unittest.TestCase):
         for icon in manifest['icons']:
             image = pymupdf.Pixmap(root / icon['src'])
             self.assertEqual(icon['sizes'], f'{image.width}x{image.height}')
-            self.assertIn('maskable', icon['purpose'])
+            self.assertEqual(icon['purpose'], 'any')
         touch = pymupdf.Pixmap(root / 'icons/apple-touch-icon.png')
         self.assertEqual((touch.width, touch.height), (180, 180))
         worker = (root / 'sw.js').read_text()
@@ -533,6 +533,8 @@ class ConversionTests(unittest.TestCase):
             links = {attrs.get('rel'): attrs['href'] for tag, attrs in elements if tag == 'link'}
             self.assertEqual((page.parent / links['manifest']).resolve(),
                              (root / 'manifest.webmanifest').resolve())
+            self.assertEqual((page.parent / links['icon']).resolve(),
+                             (root / 'icons/icon.png').resolve())
             scripts = [attrs['src'] for tag, attrs in elements if tag == 'script']
             self.assertEqual(len(scripts), 1)
             self.assertEqual((page.parent / scripts[0]).resolve(), (root / 'pwa.js').resolve())
