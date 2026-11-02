@@ -81,6 +81,9 @@ a { color: #0f864c; text-decoration-thickness: .06em; text-underline-offset: .15
 a:hover, a:focus-visible { text-decoration-thickness: .15em; }
 strong { font-weight: 700; }
 img { max-width: 100%; height: auto; }
+figure { margin: 1em 0; width: fit-content; max-width: 100%; text-align: center; }
+figcaption { font-size: .9em; }
+figcaption p { margin: .25em 0 0; }
 nav { border-bottom: 1px solid #ccd3d7; padding-bottom: .6rem; font-size: .9em; }
 i.xwing-miniatures-font { font-size: 1.2em; font-weight: normal; line-height: 1; }
 i:is(.xwing-miniatures-font-focus, .xwing-miniatures-font-evade,

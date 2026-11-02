@@ -14,6 +14,8 @@ from urllib.parse import quote
 import pymupdf
 import markdown
 
+from pdf_artwork import render_figure
+
 
 SOURCE = Path("Rules Reference v1.4.6-1.pdf")
 TEXT_FLAGS = pymupdf.TEXTFLAGS_DICT & ~pymupdf.TEXT_PRESERVE_IMAGES
@@ -53,7 +55,7 @@ SYMBOLS = {
     "\U000f2409": "[threat]", "\U000f2500": "[hyperdrive]",
 }
 
-# Crop composites, including captions; embedded image bounds ignore PDF clipping masks.
+# Crop bounds include captions; embedded image bounds ignore PDF clipping masks.
 # Entries contain (rectangle, description, insertion y). Side artwork follows its heading.
 FIGURES = {
     2: [((312, 288, 576, 405), "Pilot and ship abilities", 288)],
@@ -100,6 +102,39 @@ FIGURES = {
     22: [((257, 31, 309, 84), "Stress token", 47.5),
          ((531, 567, 584, 632), "Tractor token", 588)],
     23: [((300, 68, 388, 133), "Victory counters", 47.5)],
+}
+
+# These callout diagrams mix labels with artwork rather than captions below it.
+COMPOSITE_FIGURES = {(2, "Pilot and ship abilities"),
+                     (4, "Single turret arc indicator and ID tokens")}
+
+# Source MCIDs in FIGURES order, including embedded labels in composite diagrams.
+# Include the page 20 check/cross text groups as part of their diagram, not captions.
+FIGURE_GROUPS = {
+    (page, description): mcids
+    for page, groups in {
+        2: [(84, 85, 86, 87, 88)],
+        3: [(296,)],
+        4: [(599,), (600,), (494,), tuple(range(495, 503)), (503,)],
+        6: [(1061, 1062, 1063), (1064, 1065, 1066)],
+        7: [(1216,), tuple(range(1177, 1189)), (1189,)],
+        8: [(1556,), (1559,)],
+        9: [(1778,)],
+        10: [(1970,), (1971,)],
+        11: [(2205, 2206, 2207, 2210), (2101,)],
+        12: [(2481,), (2354,)],
+        13: [(2699,), (2586,), (2590,)],
+        14: [(2936,)],
+        16: [(3423,)],
+        17: [(3523, 3524), (3586,), (3587,), (3590,), (3498, 3503)],
+        18: [(3789,), (3791,), (3793,), (3800,)],
+        19: [(4012, 4013, 4014, 4015)],
+        20: [(4105, 4106, 4107, 4108), (4115, 4116, 4117, 4118, 4122, 4123, 4124, 4125)],
+        21: [tuple(range(4448, 4454)), (4460,), (4345,)],
+        22: [(4668,), (4568,)],
+        23: [(4675,)],
+    }.items()
+    for (_, description, _), mcids in zip(FIGURES[page], groups, strict=True) if mcids
 }
 
 # Printed cross-references include inflections and descriptive phrases, not only headings.
@@ -195,6 +230,35 @@ def body_line(spans):
     return any(s["font"] == "EurostileLTStd-Cn" and 8.2 <= s["size"] <= 8.6 for s in spans)
 
 
+def figure_content(page, box, description):
+    """Separate source-sized captions from artwork, retaining printed card text."""
+    if (page.number + 1, description) in COMPOSITE_FIGURES:
+        return box, []
+    clip = pymupdf.Rect(box)
+    lines = [line for block in page.get_text("dict", flags=TEXT_FLAGS)["blocks"]
+             for line in block.get("lines", [])
+             if clip.contains((pymupdf.Rect(line["bbox"]).tl + pymupdf.Rect(line["bbox"]).br) / 2)
+             and any(s["font"] == "EurostileLTStd-Cn" and 7 <= s["size"] <= 8.1
+                     for s in line["spans"])]
+    if not lines:
+        return box, []
+    # Centered wrapped lines can occupy separate PDF blocks; keep paired captions separate.
+    groups = []
+    for line in sorted(lines, key=lambda line: (round(line["bbox"][1]), line["bbox"][0])):
+        rect = pymupdf.Rect(line["bbox"])
+        center = (rect.x0 + rect.x1) / 2
+        group = next((g for g in reversed(groups)
+                      if abs(g[0] - center) < 20 and -1 <= rect.y0 - g[1] <= 4), None)
+        if group is None:
+            group = [center, rect.y1, []]
+            groups.append(group)
+        elif group[2]:
+            group[2][-1]["text"] = group[2][-1]["text"].rstrip() + " "
+        group[1] = rect.y1
+        group[2].extend(dict(s, text=s["text"].replace("\n", "")) for s in line["spans"])
+    return box, [g[2] for g in groups]
+
+
 def relative_url(target, current):
     path, _, anchor = target.partition("#")
     relative = Path(os.path.relpath(path, Path(current).parent)).as_posix()
@@ -262,7 +326,9 @@ def extract_blocks(document):
                 events.append((page.number + 1, int(rect.x0 >= 306), rect.y0, line))
         for box, description, anchor in figures:
             # Crop margins can cross the gutter; use the center to identify the column.
-            events.append((page.number + 1, int((box[0] + box[2]) / 2 >= 306), anchor, (box, description)))
+            artwork, captions = figure_content(page, box, description)
+            events.append((page.number + 1, int((box[0] + box[2]) / 2 >= 306), anchor,
+                           (artwork, description, captions)))
         if STOP_SECTION in page.get_text():
             found_stop = True
             break
@@ -368,12 +434,19 @@ def render_blocks(blocks, targets, current, source, root, assets, html=False):
     list_parent = False
     for block in blocks:
         if block.kind == "figure":
-            box, description = block.figure
+            box, description, captions = block.figure
             name = f"page-{block.page:02d}-{slug(description)}.png"
             asset = root.parent / "markdown" / "assets" / name
-            assets[asset] = block.page, box
+            assets[asset] = block.page, box, description, captions
             linked_asset = root / "assets" / name
-            rendered.append(f"![{description}]({relative_url(str(linked_asset), current)})")
+            url = relative_url(str(linked_asset), current)
+            caption_text = [inline_text(spans, targets, current, source, html=html) for spans in captions]
+            if html and captions:
+                caption = "".join(f"<p>{text}</p>" for text in caption_text)
+                rendered.append(f'<figure><img src="{escape(url, quote=True)}" alt="{escape(description, quote=True)}">'
+                                f'<figcaption>{caption}</figcaption></figure>')
+            else:
+                rendered.append("\n\n".join([f"![{description}]({url})", *caption_text]))
         else:
             text = inline_text(block.spans, targets, current, source, html=html)
             if block.kind == "subsection":
@@ -497,31 +570,13 @@ def convert(source, output):
         web_assets[Path("assets/page-frame.png")] = extract_page_frame(document)
         web_assets[Path(source.name)] = source.read_bytes()
         # Render only after text validation, so unmapped symbols cannot replace a good output.
-        for asset, (page, box) in assets.items():
-            asset.parent.mkdir(parents=True, exist_ok=True)
-            pdf_page = document[page - 1]
-            clip = pymupdf.Rect(box)
-            overlaps = []
-            for block in pdf_page.get_text("dict", flags=TEXT_FLAGS)["blocks"]:
-                for line in block.get("lines", []):
-                    if body_line(line["spans"]):
-                        for span in line["spans"]:
-                            rect = pymupdf.Rect(span["bbox"]) & clip
-                            if not rect.is_empty:
-                                overlaps.append(rect)
-            if not overlaps:
-                pdf_page.get_pixmap(matrix=pymupdf.Matrix(3, 3), clip=clip).save(asset)
-                continue
-            # Remove nearby prose from a temporary page; retain the artwork underneath it.
-            with pymupdf.open() as artwork:
-                artwork.insert_pdf(document, from_page=page - 1, to_page=page - 1)
-                crop_page = artwork[0]
-                for rect in overlaps:
-                    crop_page.add_redact_annot(rect, fill=None, cross_out=False)
-                crop_page.apply_redactions(images=0, graphics=0, text=0)
-                crop_page.get_pixmap(matrix=pymupdf.Matrix(3, 3), clip=clip).save(asset)
-        for asset in assets:
-            web_assets[Path("assets") / asset.name] = asset.read_bytes()
+        illustrations = {}
+        for asset, (page, box, description, captions) in assets.items():
+            illustrations[asset] = render_figure(
+                document, page, FIGURE_GROUPS[page, description], box,
+                [s["bbox"] for spans in captions for s in spans])
+        for asset, data in illustrations.items():
+            web_assets[Path("assets") / asset.name] = data
         # Version the offline bundle by content so each deployment installs atomically.
         offline = {p.relative_to(output / "docs").as_posix(): text.encode("utf-8")
                    for p, text in files.items() if p.suffix == ".html"}
@@ -538,6 +593,9 @@ def convert(source, output):
         for path, text in files.items():
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(text, encoding="utf-8")
+        for asset, data in illustrations.items():
+            asset.parent.mkdir(parents=True, exist_ok=True)
+            asset.write_bytes(data)
         for relative, data in web_assets.items():
             path = output / "docs" / relative
             path.parent.mkdir(parents=True, exist_ok=True)

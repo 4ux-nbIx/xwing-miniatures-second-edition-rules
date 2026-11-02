@@ -59,7 +59,7 @@ docs/
 ```
 
 Each format has 3 Introduction rules and 149 Glossary rules. Both folders are
-self-contained, including all 44 illustration crops and a copy of the source PDF.
+self-contained, including all 44 illustration assets and a copy of the source PDF.
 Copy either folder anywhere and open its index; all generated file links stay
 inside that folder, including appendix links to the bundled PDF. HTML also
 includes its frame, styles, and icon font.
@@ -92,10 +92,17 @@ The `docs/` tree can be tracked by Git.
   Page navigation depends on viewer support.
 - In Markdown, custom `X-WingIcons` characters become textual tags such as `[focus]`, `[hit]`,
   `[charge]`, and `[bank-left]`. `SYMBOLS` contains all 62 mappings used in this scope.
-- Composite illustrations, diagrams, tokens, and captions are 216 dpi PNG crops.
-  Their internal text is excluded from the Markdown body. Overlapping body text
-  remains in Markdown and is removed from a temporary PDF page before rendering
-  crop margins, retaining the underlying artwork.
+- Illustrations, diagrams, and tokens are transparent 216 dpi PNGs rendered from
+  isolated PDF object groups. Original clipping paths, soft masks, colors, and
+  diagram annotations are retained; page backgrounds and nearby prose are excluded.
+  Fully transparent margins are trimmed without cutting off artwork. Captions below artwork
+  are extracted as text in Markdown and HTML, retaining emphasis and symbol tags.
+  HTML groups images and captions in `figure`/`figcaption` elements. The page 2
+  pilot/ship abilities example and page 4 single-turret diagram retain their embedded
+  labels in the isolated artwork instead of extracting them as captions. Printed text and numbers on
+  cards and diagrams remain part of the graphics. `FIGURE_GROUPS` maps the source
+  marked-content IDs; `pdf_artwork.py` renders them without modifying the source PDF.
+  Missing groups stop conversion before any generated files are replaced.
 - Unknown custom symbols, unresolved green references, or a missing appendix
   boundary stop conversion before generated files are replaced.
 

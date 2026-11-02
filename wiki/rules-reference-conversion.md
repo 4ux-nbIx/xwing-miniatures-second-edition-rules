@@ -1,7 +1,7 @@
 ---
 type: Guide
 title: Rules Reference Conversion
-description: Convert Introduction and Glossary into separate Markdown and offline HTML trees, preserving symbols, local references, and cropped artwork.
+description: Convert Introduction and Glossary to portable Markdown and offline HTML with symbols, local references, separate captions, and isolated PDF artwork.
 sources:
   - id: converter
     resource: convert_rules.py
@@ -23,7 +23,7 @@ sources:
     title: Pinned X-Wing Miniatures Font
 generated:
   by: process:project-wiki-publish
-  at: 2026-11-01T16:39:35.397Z
+  at: 2026-11-02T08:45:48.908Z
 ---
 # Rules Reference Conversion
 
@@ -31,7 +31,7 @@ generated:
 
 Use the Python/PyMuPDF converter for `Rules Reference v1.4.6-1.pdf`. It converts physical pages 2–23: Introduction and Glossary. The cover is omitted, and conversion stops before APPENDIX: EXAMPLES on page 24. Installation and invocation commands live in [README](../README.md).[^readme]
 
-Running `python convert_rules.py` produces `markdown/index.md` and `docs/index.html` in the current directory. Each format has 3 Introduction rules and 149 Glossary rules. Both formats retain section folders, for example `markdown/glossary/glossary-actions.md` and `docs/glossary/glossary-actions.html`. Both formats bundle 44 crops in their own `assets/` folder and a copy of the source PDF. Each index retains section descriptions and linked TOCs in source order. Subsections remain inside their rule files. The Python `convert` function returns the Markdown index path.[^converter]
+Running `python convert_rules.py` produces `markdown/index.md` and `docs/index.html` in the current directory. Each format has 3 Introduction rules and 149 Glossary rules. Both formats retain section folders, for example `markdown/glossary/glossary-actions.md` and `docs/glossary/glossary-actions.html`. Both formats bundle 44 illustration assets in their own `assets/` folder and a copy of the source PDF. Each index retains section descriptions and linked TOCs in source order. Subsections remain inside their rule files. The Python `convert` function returns the Markdown index path.[^converter]
 
 The `-o` argument accepts a parent directory for `docs/` and `markdown/`, defaulting to the current directory. For example, `-o converted-review` writes `converted-review/docs/` and `converted-review/markdown/`. Rerunning overwrites generated files. Older output remains outside the new indexes and may have stale links; conversion does not delete it. The repository ignores `/markdown/` and legacy `/converted/`; `/docs/` is not ignored and can be tracked by Git.[^readme][^ignore]
 
@@ -53,23 +53,17 @@ Green text marks rule references. Wrapped spans merge into one link, and explici
 
 References outside the scope link to a bundled source PDF with `#page=N`: generic Appendix to page 24, individual device entries to 25, Squad Building to 43, Huge Ships to 44, and Environment Cards to 49. Both formats bundle the PDF under its original filename inside their own output folder. Page navigation depends on the PDF viewer.[^converter]
 
-## Composite illustrations
+## Illustrations and captions
 
-Explicit 216 dpi PNG crops retain illustrations, diagrams, token artwork, and captions. Embedded image bounds cannot define these crops reliably because PDF clipping masks make the bounds larger than the displayed artwork. Diagram and caption text stay in the images rather than duplicating in the Markdown body.[^converter]
+The converter renders all 44 illustrations from isolated PDF object groups as transparent 216 dpi PNGs. Original clipping paths, soft masks, form calls, and diagram annotations are retained. Page 2's pilot/ship abilities example and page 4's single-turret diagram keep embedded labels inside their images. Other captions are separate searchable Markdown paragraphs and HTML `figure`/`figcaption` content. Missing groups stop conversion before generated files are replaced.[^converter][^checks]
 
-Figure reading order uses the crop's horizontal center to select the left or right column at x=306. Crop margins can cross the gutter: the page 23 victory counters crop starts at x=300 but belongs beneath VICTORY COUNTERS in the right column. Using its left edge would place it in the continuing Tractor rule.[^converter]
-
-Insertion anchors in `FIGURES` must follow the owning heading. An anchor before that heading can attach deferred artwork to the preceding rule. The page 13 Fuse Marker anchor is y=292, after its heading at y=278.13; the former y=265 anchor placed it in Fully Execute.[^converter]
-
-To place artwork immediately after a heading, its insertion anchor must also precede the first body line. Otherwise paragraph deferral places it after the opening paragraph. The page 13 Ion token anchor is y=273, between the heading's bottom at y=272.48 and prose at y=273.24.[^converter]
-
-Nearby prose is removed from a temporary PDF page before rendering overlapping crop margins. Underlying raster and vector artwork is retained; the original PDF is not saved or modified. Keep the generated asset directory with the section folders and index. Illustration text remains raster content rather than searchable Markdown.[^converter]
+See [Rules Reference Illustrations](rules-reference-illustrations.md) for group mappings, annotation preservation, transparent trimming, caption extraction, placement anchors, and the original two-image trial.
 
 ## HTML styling and icons
 
 For phone installation, app icons, and offline caching, see [Rules Reference PWA](rules-reference-pwa.md).
 
-Both generated output folders are self-contained. Copy `docs/` alone and open `index.html`, or copy `markdown/` alone and open `index.md`. All generated local links stay inside the respective folder. HTML includes stylesheets, frame image, icon font, and font license. Crops are rendered once in `markdown/assets/` and copied into `docs/assets/`. Relocation regression checks copy each format to a separate directory and validate local references and anchors; HTML checks also cover CSS resources. Bundled PDFs and illustration copies are compared by bytes.[^converter][^checks]
+Both generated output folders are self-contained. Copy `docs/` alone and open `index.html`, or copy `markdown/` alone and open `index.md`. All generated local links stay inside the respective folder. HTML includes stylesheets, frame image, icon font, and font license. Illustrations are rendered once and written into both `markdown/assets/` and `docs/assets/`. Relocation regression checks copy each format to a separate directory and validate local references and anchors; HTML checks also cover CSS resources. Bundled PDFs and illustration copies are compared by bytes.[^converter][^checks]
 
 HTML uses Python-Markdown to render the extracted paragraphs and lists. Inline emphasis, source text colors, green references, and subsection targets are retained. Subsection IDs are placed directly on h2 headings so empty anchor paragraphs do not add vertical gaps. Pages show a Rules Reference home navigation link above 40rem; the header is hidden at widths up to 40rem and when printing. Rule subsection headings use #004761 and a 1.1em font size (10% above body text). Page titles are black without an underline and use 1.25em (25% above body text); inline font icons use 1.2em, 20% smaller than the vendored 1.5em default. `web/style.css` supplies responsive and print layouts. See [Rules Reference Typography](rules-reference-typography.md) for bundled fonts, PDF measurements, and text spacing.[^converter][^styling]
 
@@ -89,11 +83,11 @@ The margin regression check compares sampled top and side pixels with the render
 
 ## Verification and limits
 
-Run `python -m unittest discover -s tests -v`. Checks cover section and file naming, all 626 generated link/image references and explicit anchors, the appendix boundary, paragraph continuations, numbered and nested lists, symbol tags, illustration placement, and failure without replacing existing output. Every one of the 1,917 nonempty regular-font source body lines is checked against generated text. An illustration preservation check compares the bank/sideslip crop against its original rendered region.[^checks]
+Run `python -m unittest discover -s tests -v`. Checks cover section and file naming, all 626 generated link/image references and explicit anchors, the appendix boundary, paragraph continuations, numbered and nested lists, symbol tags, illustration placement, and failure without replacing existing output. Every one of the 1,917 nonempty regular-font source body lines is checked against generated text. Caption checks cover source text, wrapped and adjacent captions, emphasis, symbols, and HTML figure markup. Artwork checks cover all 44 transparent object-group images, embedded composite wording and visual fidelity, native check/cross glyphs, both cyan arrows, and missing-group failure without replacing output.[^checks]
 
 These checks establish extraction coverage, not a complete editorial review. Fonts, colors, margins, aliases, and crop coordinates are calibrated to this edition; a different PDF requires inspection and updated calibration. The appendices remain outside the conversion scope.[^readme]
 
-[^converter]: Converter, `FIGURES`, `SYMBOLS`, `RULE_ALIASES`, `EXTERNAL_RULES`, `translated`, `inline_text`, `extract_blocks`, `organize`, and `convert`.
+[^converter]: Converter, `FIGURES`, `COMPOSITE_FIGURES`, `figure_content`, `render_blocks`, `SYMBOLS`, `RULE_ALIASES`, `EXTERNAL_RULES`, `translated`, `inline_text`, `extract_blocks`, `organize`, and `convert`.
 [^readme]: README, Install and run, Preserved structure, and Verification and limits.
 [^checks]: ConversionTests.
 [^ignore]: Generated output exclusion in `.gitignore`.

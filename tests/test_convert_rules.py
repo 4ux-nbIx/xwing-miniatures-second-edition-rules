@@ -11,9 +11,10 @@ from urllib.parse import unquote, urlsplit
 import pymupdf
 
 from convert_rules import (
-    SOURCE, SYMBOLS, TEXT_FLAGS, FIGURES, STOP_SECTION,
-    convert, extract_blocks, inline_text, translated, html_document, WEB,
+    SOURCE, SYMBOLS, TEXT_FLAGS, FIGURES, STOP_SECTION, COMPOSITE_FIGURES, FIGURE_GROUPS,
+    convert, extract_blocks, inline_text, translated, html_document, WEB, figure_content,
 )
+from pdf_artwork import isolate_figure
 
 
 def plain_text(markdown):
@@ -178,24 +179,127 @@ class ConversionTests(unittest.TestCase):
         self.assertEqual(len(images), sum(len(figures) for figures in FIGURES.values()))
         illustration = self.output / 'assets/page-02-pilot-and-ship-abilities.png'
         image = pymupdf.Pixmap(illustration)
-        self.assertEqual((image.width, image.height), (792, 351))
+        self.assertTrue(image.alpha)
         abilities = self.rule('abilities')
         self.assertLess(abilities.index('## Pilot and Ship Abilities'), abilities.index('![Pilot and ship abilities]'))
         self.assertLess(abilities.index('![Pilot and ship abilities]'), abilities.index('## Replacement Effects'))
         self.assertNotIn('After you perform an action', abilities)
+
+    def test_all_artwork_uses_transparent_object_groups(self):
+        expected = {(page, name) for page, figures in FIGURES.items() for _, name, _ in figures}
+        self.assertEqual(set(FIGURE_GROUPS), expected)
+        for page, name in FIGURE_GROUPS:
+            filename = f'page-{page:02d}-' + name.lower().replace(' ', '-') + '.png'
+            pixmap = pymupdf.Pixmap(self.output / 'assets' / filename)
+            self.assertTrue(pixmap.alpha, name)
+            alpha = pixmap.samples[3::4]
+            self.assertEqual(min(alpha), 0, name)
+            self.assertGreater(max(alpha), 0, name)
         with pymupdf.open(SOURCE) as document:
+            with isolate_figure(document, 3, (296,)) as isolated:
+                self.assertEqual(isolated[0].get_text().strip(), '2')
             box = FIGURES[21][0][0]
-            original = document[20].get_pixmap(matrix=pymupdf.Matrix(3, 3), clip=pymupdf.Rect(box))
-            crop = pymupdf.Pixmap(self.output / 'assets/page-21-bank-compared-with-sideslip.png')
-            self.assertEqual(original.samples, crop.samples, 'Crop masks must not erase illustration content')
+            with isolate_figure(document, 21, FIGURE_GROUPS[21, 'Bank compared with sideslip'], box) as isolated:
+                original = document[20].get_pixmap()
+                artwork = isolated[0].get_pixmap()
+                # This arrow is tagged as a layout Artifact, outside the Figure groups.
+                checked = 0
+                for y in range(163, 212):
+                    for x in range(124, 224):
+                        if original.pixel(x, y) == (0, 174, 239):
+                            # Allow minor blending changes where the arrow crosses artwork.
+                            self.assertLessEqual(max(abs(a - b) for a, b in zip(
+                                artwork.pixel(x, y), original.pixel(x, y))), 5)
+                            checked += 1
+                self.assertGreater(checked, 60)
+            box = FIGURES[20][1][0]
+            with isolate_figure(document, 20, FIGURE_GROUPS[20, 'Correct and incorrect sideslip placement'], box) as isolated:
+                self.assertEqual(isolated[0].get_text().split(), ['✓', '✘'])
+            box, name, _ = FIGURES[23][0]
+            _, captions = figure_content(document[22], box, name)
+            with isolate_figure(document, 23, FIGURE_GROUPS[23, name], box,
+                                [s['bbox'] for spans in captions for s in spans]) as isolated:
+                self.assertEqual(isolated[0].get_text().strip(), '')
+
+    def test_missing_figure_group_preserves_previous_output(self):
+        before = {p: p.read_bytes() for p in self.root.rglob('*') if p.is_file()}
+        with patch.dict(FIGURE_GROUPS, {(3, 'Agility value on a ship card'): (-1,)}):
+            with self.assertRaisesRegex(ValueError, 'Expected one Figure MCID -1'):
+                convert(SOURCE, self.root)
+        self.assertEqual(before, {p: p.read_bytes() for p in self.root.rglob('*') if p.is_file()})
+
+    def test_captions_are_text_below_graphics_in_both_formats(self):
+        ion = self.rule('ion')
+        self.assertEqual(ion.count('\n\nIon Token\n\n'), 1)
+        self.assertLess(ion.index('![Ion token]'), ion.index('\n\nIon Token'))
+        barrel = self.rule('barrel-roll')
+        self.assertIn('A TIE fighter barrel rolls to the right and slightly forward, slightly backward, or straight across.', barrel)
+        sideslip = self.rule('sideslip')
+        self.assertIn('Correct [2 [bank-left]] Sideslip', sideslip)
+        self.assertIn('Incorrect [2 [bank-left]] Sideslip', sideslip)
+        self.assertIn("The sideslip changes the **placement** of the template, but the template's is **not** flipped over to the opposite direction.", sideslip)
+        range_text = self.rule('range')
+        self.assertIn('The TIE fighter is **within** range 1 of the X-wing.', range_text)
+        self.assertIn('The TIE fighter is **beyond** range 1 of the X-wing.', range_text)
+        html = (self.root / 'docs/glossary/glossary-ion.html').read_text()
+        self.assertRegex(html, r'<figure><img [^>]+><figcaption><p>Ion Token</p></figcaption></figure>')
+        html = (self.root / 'docs/glossary/glossary-primary-weapon.html').read_text()
+        self.assertIn('<figcaption>', html)
+        self.assertIn('aria-label="front-arc"', html)
+        with pymupdf.open(SOURCE) as document:
+            rendered = re.sub(r'\s', '', plain_text(self.text))
+            for number, figures in FIGURES.items():
+                for box, description, _ in figures:
+                    if (number, description) in COMPOSITE_FIGURES:
+                        continue
+                    for line in document[number - 1].get_text('dict', flags=TEXT_FLAGS)['blocks']:
+                        for line in line.get('lines', []):
+                            rect = pymupdf.Rect(line['bbox'])
+                            if (pymupdf.Rect(box).contains((rect.tl + rect.br) / 2)
+                                    and any(s['font'] == 'EurostileLTStd-Cn' and 7 <= s['size'] <= 8.1
+                                            for s in line['spans'])):
+                                text = ''.join(translated(s) for s in line['spans'])
+                                self.assertIn(re.sub(r'\s', '', text), rendered, (number, description))
+
+    def test_callout_diagrams_keep_embedded_text_without_page_content(self):
+        self.assertEqual(COMPOSITE_FIGURES, {(2, 'Pilot and ship abilities'),
+                                           (4, 'Single turret arc indicator and ID tokens')})
+        with pymupdf.open(SOURCE) as document:
+            for number, description in COMPOSITE_FIGURES:
+                box = next(box for box, name, _ in FIGURES[number] if name == description)
+                with isolate_figure(document, number, FIGURE_GROUPS[number, description], box) as isolated:
+                    self.assertEqual(isolated[0].get_text().split(),
+                                     document[number - 1].get_text(clip=pymupdf.Rect(box)).split())
+                    clip = pymupdf.Rect(box)
+                    original = document[number - 1].get_pixmap(matrix=pymupdf.Matrix(3, 3), clip=clip)
+                    artwork = isolated[0].get_pixmap(matrix=pymupdf.Matrix(3, 3), clip=clip)
+                    # Isolated transparency can change antialiasing at object edges.
+                    difference = sum(abs(a - b) for a, b in zip(original.samples, artwork.samples))
+                    self.assertLess(difference / len(original.samples), .5, description)
+        token = pymupdf.Pixmap(self.output / 'assets/page-13-ion-token.png')
+        self.assertLess(token.height, (303.3 - 259) * 3 + 1)
+
+    def test_left_sideslip_blue_arrow_survives_skipped_caption_clip_close(self):
+        with pymupdf.open(SOURCE) as document:
+            box = FIGURES[20][0][0]
+            with isolate_figure(document, 20, FIGURE_GROUPS[20, 'A left sideslip'], box) as isolated:
+                original = document[19].get_pixmap()
+                artwork = isolated[0].get_pixmap()
+                checked = 0
+                for y in range(277, 304):
+                    for x in range(494, 541):
+                        if original.pixel(x, y) == (0, 174, 239):
+                            self.assertEqual(artwork.pixel(x, y), original.pixel(x, y))
+                            checked += 1
+                self.assertGreater(checked, 30)
 
     def test_ion_image_immediately_follows_heading(self):
         self.assertTrue(self.rule('ion').startswith(
-            '# ION\n\n![Ion token](../assets/page-13-ion-token.png)\n\nA ship is'))
+            '# ION\n\n![Ion token](../assets/page-13-ion-token.png)\n\nIon Token\n\nA ship is'))
 
     def test_jam_image_immediately_follows_heading(self):
         self.assertTrue(self.rule('jam').startswith(
-            '# JAM ([jam])\n\n![Jam token](../assets/page-14-jam-token.png)\n\nPilots can jam'))
+            '# JAM ([jam])\n\n![Jam token](../assets/page-14-jam-token.png)\n\nJam Token\n\nPilots can jam'))
 
     def test_fuse_marker_image_follows_its_heading(self):
         image = '![Fuse marker](../assets/page-13-fuse-marker.png)'
