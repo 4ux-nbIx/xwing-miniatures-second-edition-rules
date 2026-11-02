@@ -1,4 +1,4 @@
-"""Convert Rules Reference v1.4.6-1 through the glossary, before APPENDIX: EXAMPLES."""
+"""Convert Rules Reference v1.4.6-1 through APPENDIX: EXAMPLES (physical pages 2–29)."""
 
 import argparse
 from dataclasses import dataclass, field
@@ -20,7 +20,8 @@ from pdf_artwork import render_figure
 SOURCE = Path("Rules Reference v1.4.6-1.pdf")
 TEXT_FLAGS = pymupdf.TEXTFLAGS_DICT & ~pymupdf.TEXT_PRESERVE_IMAGES
 REFERENCE_COLOR = 0x0F864C
-STOP_SECTION = "APPENDIX: EXAMPLES"
+APPENDIX_SECTION = "APPENDIX: EXAMPLES"
+STOP_SECTION = "ERRATA"
 SYMBOLS = {
     "\U000f2040": "[focus]", "\U000f2041": "[lock]",
     "\U000f2042": "[barrel-roll]", "\U000f2043": "[boost]",
@@ -52,7 +53,7 @@ SYMBOLS = {
     "\U000f222e": "[charge]", "\U000f222f": "[force]",
     "\U000f2400": "[left-arc]", "\U000f2401": "[right-arc]",
     "\U000f2402": "[tactical-relay]", "\U000f2408": "[shield]",
-    "\U000f2409": "[threat]", "\U000f2500": "[hyperdrive]",
+    "\U000f25c0": "[attack]", "\U000f2409": "[threat]", "\U000f2500": "[hyperdrive]",
 }
 
 # Crop bounds include captions; embedded image bounds ignore PDF clipping masks.
@@ -137,6 +138,94 @@ FIGURE_GROUPS = {
     for (_, description, _), mcids in zip(FIGURES[page], groups, strict=True) if mcids
 }
 
+APPENDIX_GROUPS = {
+    24: "Examples",
+    25: "Objects: Bombs and Mines",
+    26: "Objects: Bombs and Mines",
+    27: "Objects: Obstacles",
+    28: "Objects: Remotes",
+    29: "Device and Deploying Examples",
+}
+
+# Appendix cards remain in column order; each rectangle becomes one indexed rule.
+APPENDIX_CARDS = {
+    25: [("Bomblet", (36, 56, 300, 258)),
+         ("Concussion Bomb", (36, 258, 300, 467)),
+         ("Electro-Proton Bomb", (36, 467, 300, 705)),
+         ("Cluster Mine", (312, 56, 576, 316)),
+         ("Conner Net", (312, 316, 576, 516)),
+         ("Ion Bomb", (312, 516, 576, 719))],
+    26: [("Proton Bomb", (36, 50, 300, 249)),
+         ("Seismic Charge", (36, 256, 300, 456)),
+         ("Proximity Mine", (36, 464, 300, 660)),
+         ("Thermal Detonator", (312, 50, 576, 249)),
+         ("Blazer Bomb", (312, 256, 576, 706))],
+    27: [("Asteroids", (36, 50, 300, 299)),
+         ("Debris Clouds", (36, 307, 300, 558)),
+         ("Loose Cargo", (36, 568, 300, 740)),
+         ("Cargo Drift", (312, 50, 576, 240)),
+         ("Gas Clouds", (312, 260, 576, 523)),
+         ("Spare Parts", (312, 537, 576, 730))],
+    28: [("Buzz Droid Swarm", (36, 56, 300, 424)),
+         ("Sensor Buoy", (36, 433, 300, 611)),
+         ("Dark Eye Probe Droid", (312, 34, 576, 348)),
+         ("Commando Team", (312, 354, 576, 744))],
+    29: [("Deploy Example", (90, 60, 234, 283)),
+         ("Dropping Bomb Example", (280, 60, 378, 270)),
+         ("Launching Bomb Example", (420, 48, 526, 302)),
+         ("Ship Cards", (28, 337, 305, 701)),
+         ("Upgrade Cards", (312, 337, 584, 750))],
+}
+
+# Appendix artwork excludes decorative card borders. Remote stat bars keep their labels.
+APPENDIX_FIGURES = {
+    24: [((100, 198, 234, 222), "Jake ability queue", 198, tuple(range(4870, 4872))),
+         ((70, 314, 270, 340), "Jake repeated ability queue", 314, tuple(range(4872, 4875))),
+         ((52, 385, 285, 418), "Phoenix Squadron ability queue", 385, tuple(range(4875, 4879))),
+         ((350, 146, 550, 171), "Chopper ability queue", 146, tuple(range(4907, 4910)))],
+    25: [((46, 84, 294, 191), "Bomblet token", 84, (4926,)),
+         ((46, 284, 294, 391), "Concussion Bomb token", 284, (5003,)),
+         ((46, 494, 294, 601), "Electro-Proton Bomb token", 494, (4960,)),
+         ((322, 92, 572, 198), "Cluster Mine set", 92, tuple(range(4987, 4993))),
+         ((322, 344, 572, 451), "Conner Net token", 344, (4937,)),
+         ((322, 544, 572, 650), "Ion Bomb token", 544, (4970,))],
+    26: [((46, 75, 294, 182), "Proton Bomb token", 75, (5057,)),
+         ((46, 283, 294, 389), "Seismic Charge token", 283, (5030,)),
+         ((46, 492, 294, 599), "Proximity Mine token", 492, (5017,)),
+         ((322, 75, 572, 182), "Thermal Detonator token", 75, (5046,)),
+         ((354, 298, 546, 410), "Blazer Bomb and Blaze", 298, (5076, 5077, 5082, 5083)),
+         ((354, 493, 524, 646), "Placing Blaze", 493, (5078, 5079, 5080, 5081))],
+    27: [((46, 78, 294, 262), "Asteroid examples", 78, (5123, 5124, 5125)),
+         ((46, 336, 294, 519), "Debris Cloud examples", 336, (5126, 5127, 5128)),
+         ((46, 594, 294, 716), "Loose Cargo token", 594, (5092,)),
+         ((322, 78, 572, 198), "Cargo Drift token", 78, (5104,)),
+         ((322, 287, 572, 482), "Gas Cloud examples", 287, (5120, 5121, 5122)),
+         ((322, 565, 572, 685), "Spare Parts token", 565, (5098,))],
+    28: [((46, 84, 288, 177), "Buzz Droid Swarm token and stats", 84, tuple(range(5211, 5218))),
+         ((210, 239, 294, 334), "Buzz Droid Swarm placement", 239, tuple(range(5197, 5203))),
+         ((172, 340, 294, 420), "Buzz Droid Swarm blocked placement", 340, tuple(range(5203, 5211))),
+         ((46, 439, 288, 526), "Sensor Buoy token and stats", 439, tuple(range(5228, 5235))),
+         ((324, 60, 554, 153), "Dark Eye Probe Droid token and stats", 60, tuple(range(5160, 5167))),
+         ((390, 389, 502, 471), "Commando Team token", 389, (5292,)),
+         ((352, 481, 532, 524), "Commando Team stats", 481, tuple(range(5236, 5249)))],
+    29: [((94, 82, 233, 254), "Deploy diagram", 82, (5355,)),
+         ((282, 92, 376, 234), "Dropping Bomb diagram", 92, (5365,)),
+         ((425, 82, 518, 265), "Launching Bomb diagram", 82, (5374,)),
+         ((28, 357, 305, 701), "Ship card anatomy", 357, tuple(range(5299, 5326)) + (5296,)),
+         ((312, 357, 584, 750), "Upgrade card anatomy", 357, tuple(range(5326, 5355)) + (5297,))],
+}
+for page, figures in APPENDIX_FIGURES.items():
+    FIGURES[page] = [(box, description, anchor) for box, description, anchor, _ in figures]
+    FIGURE_GROUPS.update({(page, description): mcids for _, description, _, mcids in figures})
+COMPOSITE_FIGURES.update({
+    (24, description) for _, description, _, _ in APPENDIX_FIGURES[24]
+})
+COMPOSITE_FIGURES.update({
+    (28, description) for _, description, _, _ in APPENDIX_FIGURES[28]
+})
+COMPOSITE_FIGURES.update({(29, "Ship card anatomy"), (29, "Upgrade card anatomy")})
+
+
 # Printed cross-references include inflections and descriptive phrases, not only headings.
 RULE_ALIASES = {}
 for destination, variants in {
@@ -170,9 +259,9 @@ for destination, variants in {
 }.items():
     RULE_ALIASES.update(dict.fromkeys(variants, destination))
 EXTERNAL_RULES = {
-    "appendix": 24, "appendix: huge ships": 44,
+    "appendix: huge ships": 44,
     "appendix: environment cards": 49, "squad building": 43,
-    "individual entries": 25,
+
 }
 
 
@@ -306,12 +395,52 @@ def inline_text(spans, targets, current, source, html=False):
     return "".join(output).strip()
 
 
+def appendix_events(page):
+    """Read each calibrated panel independently, ignoring its border and original title."""
+    number = page.number + 1
+    lines = [line for block in page.get_text("dict", flags=TEXT_FLAGS)["blocks"]
+             for line in block.get("lines", [])]
+    events = []
+    for panel, (title, bounds) in enumerate(APPENDIX_CARDS[number]):
+        rect = pymupdf.Rect(bounds)
+        heading = {"bbox": (rect.x0, rect.y0, rect.x1, rect.y0), "level": 2,
+                   "spans": [{"text": title, "font": "EurostileLTStd-Bold", "size": 11,
+                              "color": 0x231F20}]}
+        events.append((number, panel, rect.y0, heading))
+        figures = [(box, description, anchor) for box, description, anchor in FIGURES[number]
+                   if rect.contains(pymupdf.Point((box[0] + box[2]) / 2, anchor))]
+        for line in lines:
+            box = pymupdf.Rect(line["bbox"])
+            if not rect.contains((box.tl + box.br) / 2):
+                continue
+            if any(s["font"] == "EurostileLTStd-Bold" and s["size"] >= 9 for s in line["spans"]):
+                continue
+            if any(pymupdf.Rect(figure).contains((box.tl + box.br) / 2) for figure, _, _ in figures):
+                continue
+            spans = [dict(span, text=span["text"].replace("\n", "")) for span in line["spans"]]
+            if not "".join(span["text"] for span in spans).strip():
+                continue
+            events.append((number, panel, box.y0, dict(line, spans=spans, level=0,
+                           paragraph_start=("Bold" in spans[0]["font"]
+                                            and spans[0]["text"].strip().endswith(":")))))
+        for box, description, anchor in figures:
+            artwork, captions = figure_content(page, box, description)
+            events.append((number, panel, anchor, (artwork, description, captions)))
+    return events
+
+
 def extract_blocks(document):
     """Keep paragraphs and list items intact across page and column boundaries."""
     events = []
     found_stop = False
     for page in document:
         if page.number == 0:
+            continue
+        if STOP_SECTION in page.get_text().splitlines():
+            found_stop = True
+            break
+        if page.number + 1 in APPENDIX_CARDS:
+            events.extend(appendix_events(page))
             continue
         figures = FIGURES.get(page.number + 1, [])
         for block in page.get_text("dict", flags=TEXT_FLAGS)["blocks"]:
@@ -329,9 +458,6 @@ def extract_blocks(document):
             artwork, captions = figure_content(page, box, description)
             events.append((page.number + 1, int((box[0] + box[2]) / 2 >= 306), anchor,
                            (artwork, description, captions)))
-        if STOP_SECTION in page.get_text():
-            found_stop = True
-            break
     if not found_stop:
         raise ValueError(f"Missing conversion boundary: {STOP_SECTION}")
     events.sort(key=lambda e: e[:3])
@@ -350,14 +476,14 @@ def extract_blocks(document):
             continue
         spans = [dict(s) for s in item["spans"]]
         text = "".join(s["text"] for s in spans)
-        level = heading_level(spans)
+        level = item.get("level", heading_level(spans))
         if level == 1 and text.strip() == STOP_SECTION:
             break
-        bullet = re.match(r"^([•◊]|[a-z]\.|\d+\.)\s+", text)
+        bullet = None if page in APPENDIX_CARDS else re.match(r"^([•◊]|[a-z]\.|\d+\.)\s+", text)
         # Across pages/columns, a return to the body margin ends an indented list item.
         list_ended = (stream != previous_stream and paragraph and paragraph.prefix
                       and item["bbox"][0] <= (312 if column else 36) + 1)
-        if paragraph and (level or bullet or list_ended or (stream == previous_stream and top - previous_bottom > 4)):
+        if paragraph and (level or bullet or list_ended or item.get("paragraph_start") or (stream == previous_stream and top - previous_bottom > (3 if page in APPENDIX_CARDS else 4))):
             result.append(paragraph)
             result.extend(pending_figures)
             pending_figures.clear()
@@ -413,10 +539,14 @@ def organize(blocks, output, extension=".md"):
                 raise ValueError("Rule encountered before a document section")
             name = title_key(block.text)
             path = output / section["slug"] / f"{section['slug']}-{slug(name)}{extension}"
-            if isinstance(targets.get(name), Path):
+            if isinstance(targets.get(name), Path) and section["title"] != APPENDIX_SECTION:
                 raise ValueError(f"Duplicate rule: {name}")
-            targets[name] = path
+            if section["title"] != APPENDIX_SECTION or name not in targets:
+                targets[name] = path
             rule = {"title": block, "path": path, "blocks": []}
+            if section["title"] == APPENDIX_SECTION:
+                rule["group"] = ("Card Anatomies" if block.page == 29 and name in {"ship cards", "upgrade cards"}
+                                 else APPENDIX_GROUPS[block.page])
             section["rules"].append(rule)
         else:
             if section is None:
@@ -424,8 +554,10 @@ def organize(blocks, output, extension=".md"):
             (rule["blocks"] if rule else section["intro"]).append(block)
             if block.kind == "subsection" and rule:
                 targets.setdefault(title_key(block.text), str(rule["path"]) + "#" + slug(title_key(block.text)))
-    if [s["title"] for s in sections] != ["INTRODUCTION", "GLOSSARY"]:
-        raise ValueError("Expected Introduction and Glossary before the examples appendix")
+    if [s["title"] for s in sections] != ["INTRODUCTION", "GLOSSARY", APPENDIX_SECTION]:
+        raise ValueError("Expected Introduction, Glossary, and Appendix: Examples")
+    targets["appendix"] = str(output / ("index" + extension)) + "#appendix-examples"
+    targets["individual entries"] = targets["appendix"]
     return sections, targets
 
 
@@ -559,12 +691,22 @@ def convert(source, output):
             index = root / ("index" + extension)
             toc = ["# Rules Reference v1.4.6-1"]
             for section in sections:
-                toc.append("## " + section["title"].title())
+                if section["title"] == APPENDIX_SECTION:
+                    toc.append('<a id="appendix-examples"></a>')
+                toc.append("## " + ("Appendix" if section["title"] == APPENDIX_SECTION else section["title"].title()))
                 intro = render_blocks(section["intro"], targets, index, linked_source, root, assets, html=html, image_sizes=image_sizes)
                 if intro:
                     toc.append(intro)
                 links = []
+                previous_group = None
                 for rule in section["rules"]:
+                    group = rule.get("group")
+                    if group != previous_group:
+                        if links:
+                            toc.append("\n".join(links))
+                            links = []
+                        toc.append("### " + group)
+                        previous_group = group
                     title = "".join(translated(s) for s in rule["title"].spans).strip()
                     heading = inline_text(rule["title"].spans, targets, rule["path"], linked_source, html=True) if html else title
                     text = "# " + heading + "\n\n" + render_blocks(rule["blocks"], targets, rule["path"], linked_source, root, assets, html=html, image_sizes=image_sizes) + "\n"
@@ -578,7 +720,8 @@ def convert(source, output):
                 # Render after Markdown text validation, before HTML needs trimmed PNG dimensions.
                 for asset, (page, box, description, captions) in assets.items():
                     data = render_figure(document, page, FIGURE_GROUPS[page, description], box,
-                                         [s["bbox"] for spans in captions for s in spans])
+                                         [s["bbox"] for spans in captions for s in spans],
+                                         unmarked=(page == 24))
                     illustrations[asset] = data
                     image = pymupdf.Pixmap(data)
                     image_sizes[asset.name] = image.width, image.height
@@ -624,7 +767,7 @@ def main():
         result = convert(args.source, args.output)
     except (OSError, ValueError, pymupdf.FileDataError) as error:
         parser.exit(1, f"Conversion failed: {error}\n")
-    print(f"Converted Introduction and Glossary: {result} and {args.output / 'docs' / 'index.html'}")
+    print(f"Converted Introduction, Glossary, and Appendix: Examples: {result} and {args.output / 'docs' / 'index.html'}")
 
 
 if __name__ == "__main__":

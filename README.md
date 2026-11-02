@@ -1,8 +1,8 @@
 # X-Wing Rules Reference converter
 
 A source-specific Python converter for `Rules Reference v1.4.6-1.pdf`.
-It converts physical pages 2–23: Introduction and Glossary. The cover is omitted,
-and conversion stops before `APPENDIX: EXAMPLES` on page 24.
+It converts physical pages 2–29: Introduction, Glossary, and `APPENDIX: EXAMPLES`.
+The cover and content from page 30 onward are omitted.
 
 ## Install and run
 
@@ -22,7 +22,7 @@ some systems also require creating `.venv/lib64` as a directory first.
 
 Open `docs/index.html` in a browser or `markdown/index.md` in a Markdown viewer.
 Both formats contain section descriptions and linked tables of contents in source
-order. Both formats retain `introduction/` and `glossary/` section folders, with
+order. Both formats retain `introduction/`, `glossary/`, and `appendix-examples/` section folders, with
 section-prefixed kebab-case filenames:
 
 ```text
@@ -58,10 +58,16 @@ docs/
     LICENSE
 ```
 
-Each format has 3 Introduction rules and 149 Glossary rules. Both folders are
-self-contained, including all 44 illustration assets and a copy of the source PDF.
+Each format has 3 Introduction rules, 149 Glossary rules, and 27 Appendix pages.
+The Appendix contains page 24’s extended examples, 21 separate object cards from
+pages 25–28, three device/deploy examples, and two card anatomy pages from page 29.
+The Appendix index groups its links under Examples, Objects: Bombs and Mines,
+Objects: Obstacles, Objects: Remotes, Device and Deploying Examples, and Card
+Anatomies. Object cards retain their text and artwork without decorative card borders. Remote
+stat bars and card anatomies retain embedded labels as images.
+Both folders are self-contained, including all 78 illustration assets and a copy of the source PDF.
 Copy either folder anywhere and open its index; all generated file links stay
-inside that folder, including appendix links to the bundled PDF. HTML also
+inside that folder, including links to the remaining sections in the bundled PDF. HTML also
 includes its frame, styles, and icon font.
 
 Rerunning replaces generated files. Existing output from earlier versions stays
@@ -87,11 +93,11 @@ The `docs/` tree can be tracked by Git.
   substeps retain their original labels as nested bullets, such as `- **a.**`.
 - Green references link to rule files or subsection anchors. Explicit aliases
   handle inflections and terms such as `destroyed`, which targets `DESTROYING SHIPS`.
-  References to appendices outside the conversion link to the relative source PDF
+  Appendix references link to the local index. References outside the conversion link to the relative source PDF
   with `#page=N`. Both formats link to their own bundled PDF.
   Page navigation depends on viewer support.
 - In Markdown, custom `X-WingIcons` characters become textual tags such as `[focus]`, `[hit]`,
-  `[charge]`, and `[bank-left]`. `SYMBOLS` contains all 62 mappings used in this scope.
+  `[charge]`, and `[bank-left]`. `SYMBOLS` contains all 63 mappings used in this scope.
 - Illustrations, diagrams, and tokens are transparent 216 dpi PNGs rendered from
   isolated PDF object groups. Original clipping paths, soft masks, colors, and
   diagram annotations are retained; page backgrounds and nearby prose are excluded.
@@ -105,9 +111,10 @@ The `docs/` tree can be tracked by Git.
   labels in the isolated artwork instead of extracting them as captions. Printed text and numbers on
   cards and diagrams remain part of the graphics. `FIGURE_GROUPS` maps the source
   marked-content IDs; `pdf_artwork.py` renders them without modifying the source PDF.
-  Missing groups stop conversion before any generated files are replaced.
-- Unknown custom symbols, unresolved green references, or a missing appendix
-  boundary stop conversion before generated files are replaced.
+  Page 24’s queue diagrams also retain unmarked box graphics and clip to their
+  calibrated bounds. Missing groups stop conversion before any generated files are replaced.
+- Unknown custom symbols, unresolved green references, or a missing conversion
+  boundary (`ERRATA` on physical page 30) stop conversion before generated files are replaced.
 
 ## HTML styling and icons
 
@@ -169,9 +176,9 @@ Relative URLs support both a repository subpath and a custom domain.
   Enable **Open as Web App** if offered.
 
 Keep the first visit online while the service worker downloads the Introduction,
-Glossary, illustrations, styles, and fonts. These remain available offline after
+Glossary, Appendix examples, illustrations, styles, and fonts. These remain available offline after
 the download completes. The 74 MB source PDF is excluded from the offline cache;
-appendix links require a connection. Browser storage eviction can remove offline
+links to sections outside the converted scope require a connection. Browser storage eviction can remove offline
 content; revisit online to restore it.
 
 Each conversion generates a content-versioned service worker. Updates download
@@ -187,9 +194,11 @@ vector icon is `web/icons/icon.svg`; PNG sizes and `web/favicon.ico` derive from
 ## Verification and limits
 
 Tests cover every generated local link, image, and explicit subsection anchor;
-section/file naming; the appendix boundary; continuations across pages; list
+section/file naming; the conversion boundary; continuations across pages; list
 structure; failure without replacing existing output; and preservation of all
-1,917 nonempty source body lines. Overview pages and illustration crops were
+1,917 nonempty Introduction/Glossary source body lines, plus appendix card body text.
+Appendix checks cover individual index entries, remote stats, card anatomy labels,
+and source-render comparisons for composite artwork. Overview pages and illustration crops were
 visually reviewed during implementation. These checks establish extraction
 coverage, not a word-for-word editorial review of the whole rulebook.
 

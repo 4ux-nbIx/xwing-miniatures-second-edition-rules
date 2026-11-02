@@ -61,7 +61,7 @@ body::before {
   padding: 1rem 1.5rem;
   background: white;
 }
-h1, h2 {
+h1, h2, h3 {
   font-family: "Exo 2", "Arial Black", sans-serif;
   font-weight: 800;
   line-height: 1.2;
@@ -69,8 +69,9 @@ h1, h2 {
 }
 h1 { color: #000; font-size: 1.25em; margin: 0 0 .2em; }
 h2 { color: #004761; font-size: 1.1em; font-variant-caps: small-caps; margin: .75em 0 .15em; }
+h3 { color: #000; font-size: .9em; margin: .75em 0 .15em; }
 h1 + h2 { margin-top: .2em; }
-h1 strong, h2 strong { font-weight: inherit; }
+h1 strong, h2 strong, h3 strong { font-weight: inherit; }
 p { margin: 0 0 1em; }
 ul, ol { margin: 1.1em 0; padding-inline-start: 1.6em; list-style-position: outside; }
 li { margin: 1.1em 0; }

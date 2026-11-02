@@ -5,7 +5,7 @@ import re
 import pymupdf
 
 
-def figure_stream(page, mcids, bounds=None):
+def figure_stream(page, mcids, bounds=None, unmarked=False):
     """Retain nested marked content, clipping paths, and original graphics states."""
     source = page.read_contents()
     groups = []
@@ -40,7 +40,40 @@ def figure_stream(page, mcids, bounds=None):
         else:
             raise ValueError("Unclosed figure marked content")
         streams.append(group)
-    group = b"\n".join(streams)
+    if unmarked:
+        # Page 24 paints queue boxes outside marked content. Keep those graphics;
+        # replay only state from unwanted text groups, then clip to the diagram.
+        states += rb"|[-.\d]+\s+(?:Tc|Tw|Tz|TL|Tr|Ts)\b"
+        streams, cursor = [], 0
+        selected = set(groups)
+        for marker in re.finditer(rb"/\w+\s*(?:<<[^<>]*>>\s*)?B[DM]C", source):
+            if marker.start() < cursor:
+                continue
+            streams.append(source[cursor:marker.start()])
+            depth = 1
+            for token in re.finditer(rb"\b(BDC|BMC|EMC)\b", source[marker.end():]):
+                depth += -1 if token[1] == b"EMC" else 1
+                if depth == 0:
+                    end = marker.end() + token.end()
+                    break
+            else:
+                raise ValueError("Unclosed figure marked content")
+            content = source[marker.end():end - 3]
+            if marker.end() in selected:
+                streams.append(content)
+            else:
+                for state in re.finditer(states, content):
+                    operator = state[0]
+                    streams.append(b"BT " + operator + b" ET" if re.search(rb"(?:Tf|Tc|Tw|Tz|TL|Tr|Ts)$", operator) else operator)
+            cursor = end
+        streams.append(source[cursor:])
+        # Full-page forms contain the decorative page background and copyright.
+        group = b"\n".join(streams)
+        for _, name, parent, box in page.get_xobjects():
+            if parent == 0 and pymupdf.Rect(box).contains(page.rect):
+                group = group.replace(b"/" + name.encode("ascii") + b" Do", b"")
+    else:
+        group = b"\n".join(streams)
     # Adjacent groups can share a clipping scope. Keep their source order and balance
     # only the combined stream's outer scopes, which originally ended in page prose.
     depth = minimum = 0
@@ -51,13 +84,13 @@ def figure_stream(page, mcids, bounds=None):
     return b"q\n" * (1 - minimum) + group + b"\nQ" * (1 + depth - minimum)
 
 
-def isolate_figure(document, page_number, mcids, bounds=None, caption_rects=()):
+def isolate_figure(document, page_number, mcids, bounds=None, caption_rects=(), unmarked=False):
     """Return an in-memory PDF containing only the requested figure groups."""
     isolated = pymupdf.open()
     try:
         isolated.insert_pdf(document, from_page=page_number - 1, to_page=page_number - 1)
         page = isolated[0]
-        group = figure_stream(page, mcids, bounds)
+        group = figure_stream(page, mcids, bounds, unmarked=unmarked)
         contents = page.get_contents()[0]
         isolated.update_stream(contents, group)
         page.set_contents(contents)
@@ -74,11 +107,11 @@ def isolate_figure(document, page_number, mcids, bounds=None, caption_rects=()):
         raise
 
 
-def render_figure(document, page_number, mcids, bounds, caption_rects=()):
+def render_figure(document, page_number, mcids, bounds, caption_rects=(), unmarked=False):
     """Render isolated artwork at 216 dpi and trim only fully transparent margins."""
-    with isolate_figure(document, page_number, mcids, bounds, caption_rects) as isolated:
+    with isolate_figure(document, page_number, mcids, bounds, caption_rects, unmarked=unmarked) as isolated:
         page = isolated[0]
-        pixmap = page.get_pixmap(matrix=pymupdf.Matrix(3, 3), alpha=True)
+        pixmap = page.get_pixmap(matrix=pymupdf.Matrix(3, 3), clip=bounds if unmarked else None, alpha=True)
         alpha = pixmap.samples[3::4]
         left, top, right, bottom = pixmap.width, pixmap.height, 0, 0
         for y in range(pixmap.height):
@@ -89,5 +122,5 @@ def render_figure(document, page_number, mcids, bounds, caption_rects=()):
                 top, bottom = min(top, y), y + 1
         if right == 0:
             raise ValueError(f"Empty artwork on page {page_number}: {mcids}")
-        clip = pymupdf.Rect(left - 1, top - 1, right + 1, bottom + 1) / 3
+        clip = pymupdf.Rect(left - 1 + pixmap.x, top - 1 + pixmap.y, right + 1 + pixmap.x, bottom + 1 + pixmap.y) / 3
         return page.get_pixmap(matrix=pymupdf.Matrix(3, 3), clip=clip, alpha=True).tobytes("png")

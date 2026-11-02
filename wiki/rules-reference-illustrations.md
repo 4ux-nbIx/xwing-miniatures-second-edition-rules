@@ -1,7 +1,7 @@
 ---
 type: Guide
 title: Rules Reference Illustrations
-description: Isolated PDF groups for all 44 illustrations, embedded callout labels, separate captions, preserved graphics state, annotations, and transparent PNGs.
+description: Isolated PDF content for 78 illustrations, Appendix stat bars and anatomies, captions, inherited graphics state, and transparent PNGs.
 sources:
   - id: converter
     resource: convert_rules.py
@@ -20,17 +20,17 @@ sources:
     title: HTML figure and caption styling
 generated:
   by: process:project-wiki-publish
-  at: 2026-11-02T10:14:48.206Z
+  at: 2026-11-02T20:46:09.333Z
 ---
 # Rules Reference Illustrations
 
 ## Object groups and composite exceptions
 
-The converter produces 44 illustration assets for physical pages 2–23 of Rules Reference v1.4.6-1. `FIGURE_GROUPS` maps all 44 illustrations to source marked-content IDs (MCIDs). `pdf_artwork.py` isolates those groups in temporary in-memory PDF pages, excluding surrounding page prose and backgrounds. Original raster images, vector paths, clipping paths, soft masks, native form calls, and source paint order are retained. The copied page restores its DeviceCMYK transparency group, which `insert_pdf` omits. The source PDF is never saved or modified.[^converter][^artwork]
+The converter produces 78 illustration assets for physical pages 2–29 of Rules Reference v1.4.6-1. `FIGURE_GROUPS` maps all 78 illustrations to source marked-content IDs (MCIDs). `pdf_artwork.py` isolates those groups in temporary in-memory PDF pages, excluding surrounding page prose and backgrounds. Original raster images, vector paths, clipping paths, soft masks, native form calls, and source paint order are retained. The copied page restores its DeviceCMYK transparency group, which `insert_pdf` omits. The source PDF is never saved or modified.[^converter][^artwork]
 
 `COMPOSITE_FIGURES` keeps labels inside the isolated artwork for page 2's Pilot and Ship Abilities example and page 4's Turret Arcs illustration, named Single turret arc indicator and ID tokens in the mapping. Page 2 includes MCIDs 84–88; page 4 includes MCIDs 495–502. Their labels are interleaved with artwork rather than confined below it, so they do not become separate captions. Text coverage and source-render comparisons verify the embedded wording and visual fidelity.[^converter][^checks]
 
-Multi-panel artwork stays grouped in one image. All artwork renders at 216 dpi with alpha transparency. Only fully transparent margins are trimmed, with one pixel of padding. Artwork can extend beyond the original caption/crop bounds, including the second player marker and Jam token. Caption positions must not truncate graphics.[^artwork][^converter]
+Multi-panel artwork stays grouped in one image. All artwork renders at 216 dpi with alpha transparency. Only fully transparent margins are trimmed, with one pixel of padding. Artwork can extend beyond the original caption/crop bounds, including the second player marker and Jam token. Page 24’s unmarked queue graphics are explicitly clipped to their diagram bounds. Caption positions must not truncate graphics.[^artwork][^converter]
 
 All illustration bytes are rendered before generated output is written. Missing or ambiguous MCIDs and empty artwork raise errors; there is no page-crop fallback. A missing-group regression check confirms existing output stays unchanged.[^artwork][^converter][^checks]
 
@@ -41,6 +41,12 @@ All illustration bytes are rendered before generated output is written. Missing 
 - Page 23's Victory Counters Figure MCID 4675 contains nested `PlacedPDF` marked content. Its matching `EMC` closes the group; the first nested `EMC` does not.[^artwork]
 - Adjacent groups can share `q`/`Q` clipping scopes. Keep source order and balance the combined stream's outer scopes. The helper is calibrated to this PDF's markup and operator layout, not a general PDF parser.[^artwork]
 - Skipped captions can carry a closing `Q` or inherited font/color settings needed by later artwork. Replay non-painting graphics stack, font, graphics-state resource, and color changes from source gaps while omitting prose and path painting. Page 20's left-sideslip arrow otherwise stays inside a preceding ship's clip and disappears, even when its Artifact is selected. Embedded composite labels also require inherited font state.[^artwork][^checks]
+
+## Appendix artwork
+
+`APPENDIX_FIGURES` adds 34 images. Remote stat bars and placement diagrams keep their embedded numbers and check/cross glyphs. Page 29’s two anatomy images retain all labels and cyan callout lines; device/deploy captions remain separate searchable text.[^converter][^checks]
+
+Page 24’s queue boxes are painted outside marked-content groups. `unmarked=True` retains unmarked graphics while dropping unwanted marked text, replaying inherited text spacing and graphics state, and removing full-page background forms. Rendering clips this mode to the calibrated diagram bounds, then trims transparent margins. Other figures retain the existing group-only rendering path.[^artwork][^converter]
 
 ## Separate captions
 

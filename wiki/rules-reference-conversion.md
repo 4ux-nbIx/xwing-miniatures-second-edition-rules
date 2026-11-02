@@ -1,7 +1,7 @@
 ---
 type: Guide
 title: Rules Reference Conversion
-description: Convert Introduction and Glossary to portable Markdown and offline HTML with symbols, local references, separate captions, and isolated PDF artwork.
+description: Convert pages 2–29 to portable Markdown and offline HTML with individual Appendix cards, local references, symbols, and isolated artwork.
 sources:
   - id: converter
     resource: convert_rules.py
@@ -23,15 +23,15 @@ sources:
     title: Pinned X-Wing Miniatures Font
 generated:
   by: process:project-wiki-publish
-  at: 2026-11-02T10:08:09.587Z
+  at: 2026-11-02T20:54:36.583Z
 ---
 # Rules Reference Conversion
 
 ## Workflow and coverage
 
-Use the Python/PyMuPDF converter for `Rules Reference v1.4.6-1.pdf`. It converts physical pages 2–23: Introduction and Glossary. The cover is omitted, and conversion stops before APPENDIX: EXAMPLES on page 24. Installation and invocation commands live in [README](../README.md).[^readme]
+Use the Python/PyMuPDF converter for `Rules Reference v1.4.6-1.pdf`. It converts physical pages 2–29: Introduction, Glossary, and Appendix: Examples. The cover is omitted, and conversion stops before the ERRATA heading on physical page 30. Installation and invocation commands live in [README](../README.md).[^readme]
 
-Running `python convert_rules.py` produces `markdown/index.md` and `docs/index.html` in the current directory. Each format has 3 Introduction rules and 149 Glossary rules. Both formats retain section folders, for example `markdown/glossary/glossary-actions.md` and `docs/glossary/glossary-actions.html`. Both formats bundle 44 illustration assets in their own `assets/` folder and a copy of the source PDF. Each index retains section descriptions and linked TOCs in source order. Subsections remain inside their rule files. The Python `convert` function returns the Markdown index path.[^converter]
+Running `python convert_rules.py` produces `markdown/index.md` and `docs/index.html` in the current directory. Each format has 3 Introduction rules, 149 Glossary rules, and 27 Appendix pages. Both formats retain `introduction/`, `glossary/`, and `appendix-examples/` section folders, for example `markdown/glossary/glossary-actions.md` and `docs/glossary/glossary-actions.html`. Both formats bundle 78 illustration assets in their own `assets/` folder and a copy of the source PDF. Each index retains section descriptions and linked TOCs in source order. Subsections remain inside their rule files. The Python `convert` function returns the Markdown index path.[^converter]
 
 The `-o` argument accepts a parent directory for `docs/` and `markdown/`, defaulting to the current directory. For example, `-o converted-review` writes `converted-review/docs/` and `converted-review/markdown/`. Rerunning overwrites generated files. Older output remains outside the new indexes and may have stale links; conversion does not delete it. The repository ignores `/markdown/` and legacy `/converted/`; `/docs/` is not ignored and can be tracked by Git.[^readme][^ignore]
 
@@ -45,17 +45,21 @@ Unmarked paragraphs inside numbered steps retain four-space Markdown indentation
 
 Markdown and large HTML figure placement wait until an enclosing paragraph is complete, preventing side artwork from splitting prose. Regular-font body text includes the smaller position-marker prose as well as the usual 8.5-point text. Extraction placeholders and control artifacts are removed without changing the printed wording.[^converter]
 
+## Appendix panels
+
+`APPENDIX_CARDS` calibrates one independent reading stream per object card on pages 25–28, preserving left-column-before-right-column order. The 21 cards retain searchable text and isolated artwork without decorative borders. Page 29 becomes three device/deploy example pages and two image-based card anatomy pages. Both indexes display one Appendix section with six subsections: Examples, Objects: Bombs and Mines, Objects: Obstacles, Objects: Remotes, Device and Deploying Examples, and Card Anatomies. The 27 individual page URLs and the `appendix-examples` index anchor remain stable. `APPENDIX_GROUPS` and `organize` assign each page to its subsection. `appendix_events` suppresses internal artwork text and original card headings, inserts one title per panel, preserves phase paragraph breaks, and treats “range 0.” as prose rather than a numbered list.[^converter][^checks]
+
 ## Symbols and rule references
 
-The 62 scoped `X-WingIcons` mappings produce textual tags such as `[barrel-roll]`, `[hit]`, `[critical-hit]`, `[charge]`, and `[bank-left]`. Unknown custom symbols, unresolved green references, or a missing appendix boundary stop conversion before generated files are replaced.[^converter]
+The 63 scoped `X-WingIcons` mappings produce textual tags such as `[barrel-roll]`, `[hit]`, `[critical-hit]`, `[charge]`, and `[bank-left]`. Unknown custom symbols, unresolved green references, or a missing ERRATA boundary stop conversion before generated files are replaced.[^converter]
 
 Green text marks rule references. Wrapped spans merge into one link, and explicit aliases handle inflections and descriptive phrases. References within the converted scope link to local rule files or explicit subsection anchors. The text `destroyed` targets `DESTROYING SHIPS`.[^converter]
 
-References outside the scope link to a bundled source PDF with `#page=N`: generic Appendix to page 24, individual device entries to 25, Squad Building to 43, Huge Ships to 44, and Environment Cards to 49. Both formats bundle the PDF under its original filename inside their own output folder. Page navigation depends on the PDF viewer.[^converter]
+Generic Appendix and individual device-entry references link to the local index’s `appendix-examples` anchor. Existing Glossary rules retain link ownership when an Appendix card shares their title. References outside the scope link to a bundled source PDF with `#page=N`: Squad Building to 43, Huge Ships to 44, and Environment Cards to 49. Both formats bundle the PDF under its original filename inside their own output folder. Page navigation depends on the PDF viewer.[^converter]
 
 ## Illustrations and captions
 
-The converter renders all 44 illustrations from isolated PDF object groups as transparent 216 dpi PNGs. Original clipping paths, soft masks, form calls, and diagram annotations are retained. Page 2's pilot/ship abilities example and page 4's single-turret diagram keep embedded labels inside their images. Other captions are separate searchable italic Markdown paragraphs and italic HTML `figure`/`figcaption` content. HTML figures whose trimmed PNG width and height are both below 155 pixels float right with captions underneath, allowing text to wrap beside them. Missing groups stop conversion before generated files are replaced.[^converter][^checks]
+The converter renders all 78 illustrations from isolated PDF content as transparent 216 dpi PNGs. Original clipping paths, soft masks, form calls, and diagram annotations are retained. Page 2's pilot/ship abilities example and page 4's single-turret diagram keep embedded labels inside their images. Other captions are separate searchable italic Markdown paragraphs and italic HTML `figure`/`figcaption` content. HTML figures whose trimmed PNG width and height are both below 155 pixels float right with captions underneath, allowing text to wrap beside them. Missing groups stop conversion before generated files are replaced.[^converter][^checks]
 
 See [Rules Reference Illustrations](rules-reference-illustrations.md) for group mappings, annotation preservation, transparent trimming, caption extraction, placement anchors, and the original two-image trial.
 
@@ -69,7 +73,7 @@ HTML uses Python-Markdown to render the extracted paragraphs and lists. Inline e
 
 Font icons use green `#4F8535` for focus, evade, calculate, and reinforce; orange `#C46312` for jam, disarm, and tractor; blue `#287F91` for cloak and shield; red `#C40025` for lock, stress, strain, deplete, ion, geometric arcs, range bonus indicator, and critical markers; golden yellow `#A07800` for charges and recurring-charge symbols; and purple `#875392` for energy and force symbols. Hit and critical-hit result glyphs retain inherited text color. These CSS colors affect font icons; token illustrations remain raster crops.[^styling][^converter]
 
-The bundled X-Wing Miniatures Font is pinned to commit `2664d8e9efffd4f1f7a0feac08a21bd123ce3c8a`. Its TTF, icon-only CSS, and MIT license are copied from `web/vendor/xwing-miniatures-font/` into HTML output. HTML renders 60 of the 62 symbol tags with accessible icon labels. Upstream has no hyperdrive or threat glyph, so `[hyperdrive]` and `[threat]` remain readable text. Markdown retains all textual tags. Conversion and viewing need no network access after dependencies are installed.[^converter][^icon-font]
+The bundled X-Wing Miniatures Font is pinned to commit `2664d8e9efffd4f1f7a0feac08a21bd123ce3c8a`. Its TTF, icon-only CSS, and MIT license are copied from `web/vendor/xwing-miniatures-font/` into HTML output. HTML renders 61 of the 63 symbol tags with accessible icon labels. Upstream has no hyperdrive or threat glyph, so `[hyperdrive]` and `[threat]` remain readable text. Markdown retains all textual tags. Conversion and viewing need no network access after dependencies are installed.[^converter][^icon-font]
 
 ## HTML graphical margins
 
@@ -83,9 +87,9 @@ The margin regression check compares sampled top and side pixels with the render
 
 ## Verification and limits
 
-Run `python -m unittest discover -s tests -v`. Checks cover section and file naming, all 626 generated link/image references and explicit anchors, the appendix boundary, paragraph continuations, numbered and nested lists, symbol tags, illustration placement, and failure without replacing existing output. Every one of the 1,917 nonempty regular-font source body lines is checked against generated text. Caption checks cover source text, wrapped and adjacent captions, emphasis, symbols, and HTML figure markup. Artwork checks cover all 44 transparent object-group images, embedded composite wording and visual fidelity, native check/cross glyphs, both cyan arrows, and missing-group failure without replacing output.[^checks]
+Run `python -m unittest discover -s tests -v`. Checks cover section and file naming, all generated link/image references and explicit anchors, the ERRATA boundary, paragraph continuations, numbered and nested lists, symbol tags, illustration placement, and failure without replacing existing output. Every one of the 1,917 nonempty regular-font source body lines is checked against generated text. Caption checks cover source text, wrapped and adjacent captions, emphasis, symbols, and HTML figure markup. Artwork checks cover all 78 transparent images, embedded composite wording and visual fidelity, native check/cross glyphs, both cyan arrows, and missing-group failure without replacing output.[^checks]
 
-These checks establish extraction coverage, not a complete editorial review. Fonts, colors, margins, aliases, and crop coordinates are calibrated to this edition; a different PDF requires inspection and updated calibration. The appendices remain outside the conversion scope.[^readme]
+These checks establish extraction coverage, not a complete editorial review. Fonts, colors, margins, aliases, and crop coordinates are calibrated to this edition; a different PDF requires inspection and updated calibration. Content from physical page 30 onward remains outside the conversion scope.[^readme]
 
 [^converter]: Converter, `FIGURES`, `COMPOSITE_FIGURES`, `figure_content`, `render_blocks`, `SYMBOLS`, `RULE_ALIASES`, `EXTERNAL_RULES`, `translated`, `inline_text`, `extract_blocks`, `organize`, and `convert`.
 [^readme]: README, Install and run, Preserved structure, and Verification and limits.

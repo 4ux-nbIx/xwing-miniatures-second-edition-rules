@@ -14,7 +14,7 @@ sources:
     title: HTML generation and offline asset copying
 generated:
   by: process:project-wiki-publish
-  at: 2026-11-01T10:40:36.474Z
+  at: 2026-11-02T20:58:41.257Z
 ---
 # Rules Reference Typography
 
@@ -27,6 +27,8 @@ Source page 2 uses EurostileLTStd-Cn body text (8.5pt), EurostileLTStd-Bold rule
 Font source is pinned to Google Fonts commit `6c1dbe27dcf7d817d4b62cec033ba77fa8e2a5ec`. Full glyph sets are converted to WOFF2 using FontTools 4.68.0 and Brotli 1.2.1; Exo 2 is instantiated at weight 800 before conversion. Conversion needs no font-build tools after these assets are bundled.[^typography]
 
 ## Heading and paragraph rhythm
+
+Appendix index group headings use h3 with black `#000` text at `.9em`, retaining the shared heading font and weight. Their margins are `.75em` above and `.15em` below.[^styling]
 
 Body line-height is 1.2, matching page 2's 10.2pt baseline advance for 8.5pt text. Paragraph gaps use 1em and list/item gaps use 1.1em, slightly increasing the original PDF-derived gaps for readability. Page titles have .2em bottom margins; subsections have .75em top and .15em bottom margins, with a .2em top margin immediately after a page title. Desktop lists use 1.6em hanging indents. First/last item paragraphs avoid duplicate spacing.[^styling]
 

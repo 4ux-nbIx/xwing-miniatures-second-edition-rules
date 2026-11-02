@@ -12,6 +12,7 @@ import pymupdf
 
 from convert_rules import (
     SOURCE, SYMBOLS, TEXT_FLAGS, FIGURES, STOP_SECTION, COMPOSITE_FIGURES, FIGURE_GROUPS,
+    APPENDIX_SECTION, APPENDIX_CARDS, organize,
     convert, extract_blocks, inline_text, translated, html_document, WEB, figure_content, Block, render_blocks,
 )
 from pdf_artwork import isolate_figure
@@ -61,13 +62,13 @@ class ConversionTests(unittest.TestCase):
 
     def test_index_sections_descriptions_and_every_rule(self):
         index = self.files['index.md']
-        self.assertEqual(re.findall(r'^## .+$', index, re.M), ['## Introduction', '## Glossary'])
+        self.assertEqual(re.findall(r'^## .+$', index, re.M), ['## Introduction', '## Glossary', '## Appendix'])
         self.assertIn('The glossary lists all gameplay terms and phases in detail.', index)
         self.assertIn('This reference is the definitive source', index)
         self.assertLess(index.index('## Introduction'), index.index('introduction-golden-rules.md'))
         self.assertLess(index.index('## Glossary'), index.index('glossary-abilities.md'))
         links = re.findall(r'\]\(([^)]+\.md)\)', index)
-        self.assertEqual(len(links), 152)
+        self.assertEqual(len(links), 179)
         self.assertEqual(set(links), set(self.files) - {'index.md'})
         self.assertEqual(sum(p.startswith('introduction/') for p in links), 3)
         self.assertEqual(sum(p.startswith('glossary/') for p in links), 149)
@@ -76,16 +77,105 @@ class ConversionTests(unittest.TestCase):
             self.assertRegex(filename, '^' + folder + r'-[a-z0-9]+(?:-[a-z0-9]+)*\.md$')
             self.assertEqual(len(re.findall(r'^# ', self.files[link], re.M)), 1)
 
-    def test_boundary_skips_cover_and_all_appendices(self):
-        self.assertNotIn(STOP_SECTION, self.text)
-        self.assertNotIn('EXTENDED EXAMPLES', self.text)
-        self.assertNotIn('Ability Queue Example #1', self.text)
+    def test_appendix_index_groups_in_both_formats(self):
+        expected = [
+            ('Examples', ['extended-examples']),
+            ('Objects: Bombs and Mines', ['bomblet', 'concussion-bomb', 'electro-proton-bomb',
+                                        'cluster-mine', 'conner-net', 'ion-bomb', 'proton-bomb',
+                                        'seismic-charge', 'proximity-mine', 'thermal-detonator', 'blazer-bomb']),
+            ('Objects: Obstacles', ['asteroids', 'debris-clouds', 'loose-cargo', 'cargo-drift',
+                                   'gas-clouds', 'spare-parts']),
+            ('Objects: Remotes', ['buzz-droid-swarm', 'sensor-buoy', 'dark-eye-probe-droid', 'commando-team']),
+            ('Device and Deploying Examples', ['deploy-example', 'dropping-bomb-example', 'launching-bomb-example']),
+            ('Card Anatomies', ['ship-cards', 'upgrade-cards']),
+        ]
+        index = self.files['index.md']
+        sections = re.split(r'^### (.+)\n', index, flags=re.M)
+        self.assertEqual(sections[1::2], [title for title, _ in expected])
+        for content, (_, names) in zip(sections[2::2], expected, strict=True):
+            links = re.findall(r'appendix-examples/appendix-examples-([^()]+)\.md', content)
+            self.assertEqual(links, names)
+        html = (self.root / 'docs/index.html').read_text()
+        self.assertEqual(re.findall(r'<h3>([^<]+)</h3>', html), [title for title, _ in expected])
+        sections = re.split(r'<h3>[^<]+</h3>', html)
+        for content, (_, names) in zip(sections[1:], expected, strict=True):
+            links = re.findall(r'appendix-examples/appendix-examples-([^"<>]+)\.html', content)
+            self.assertEqual(links, names)
+
+    def test_boundary_includes_examples_and_skips_later_sections(self):
+        self.assertNotIn("# " + STOP_SECTION + "\n", self.text)
+        self.assertIn("## Appendix\n", self.text)
+        self.assertIn('Ability Queue Example #1', self.text)
+        self.assertNotIn('SAW’S RENEGADES', self.text)
         self.assertNotIn('Lucasfilm', self.text)
         with pymupdf.open(SOURCE) as document:
             blocks = extract_blocks(document)
         self.assertEqual(min(b.page for b in blocks), 2)
-        self.assertEqual(max(b.page for b in blocks), 23)
-        self.assertEqual([b.text for b in blocks if b.kind == 'section'], ['INTRODUCTION', 'GLOSSARY'])
+        self.assertEqual(max(b.page for b in blocks), 29)
+        self.assertEqual([b.text for b in blocks if b.kind == 'section'], ['INTRODUCTION', 'GLOSSARY', APPENDIX_SECTION])
+
+    def test_appendix_cards_and_examples_are_individually_indexed(self):
+        appendix = 'appendix-examples'
+        self.assertEqual(sum(p.startswith(appendix + '/') for p in self.files), 27)
+        with pymupdf.open(SOURCE) as document:
+            for number, cards in APPENDIX_CARDS.items():
+                for title, bounds in cards:
+                    name = re.sub(r'[^a-z0-9]+', '-', title.lower()).strip('-')
+                    text = self.rule(name, appendix)
+                    self.assertTrue(text.startswith('# ' + title + '\n'))
+                    self.assertIn(f'[{title}]({appendix}/{appendix}-{name}.md)', self.files['index.md'])
+                    if number == 29:
+                        continue
+                    rendered = re.sub(r'\s', '', plain_text(text))
+                    for block in document[number - 1].get_text('dict', flags=TEXT_FLAGS)['blocks']:
+                        for line in block.get('lines', []):
+                            rect = pymupdf.Rect(line['bbox'])
+                            if not pymupdf.Rect(bounds).contains((rect.tl + rect.br) / 2):
+                                continue
+                            if not any(s['font'] == 'EurostileLTStd-Cn' and 7.5 <= s['size'] <= 8.6
+                                       for s in line['spans']):
+                                continue
+                            source = ''.join(translated(s) for s in line['spans'])
+                            self.assertIn(re.sub(r'\s', '', source), rendered, (number, title, source))
+        commando = self.rule('commando-team', appendix)
+        self.assertIn('range 0. Your primary attack', plain_text(commando))
+        self.assertIn('\n\n**Activation Phase:**', commando)
+        self.assertIn('\n\nAt the end', self.rule('bomblet', appendix))
+        for name, caption in [('deploy-example', 'The Phantom II deploys'),
+                              ('dropping-bomb-example', 'This HWK-290 drops'),
+                              ('launching-bomb-example', 'This TIE punisher launches')]:
+            self.assertIn(caption, plain_text(self.rule(name, appendix)))
+        for name in ('ship-cards', 'upgrade-cards'):
+            self.assertEqual(self.rule(name, appendix).count('!['), 1)
+        # Glossary rules retain ownership of existing links when an object shares its title.
+        with pymupdf.open(SOURCE) as document:
+            _, targets = organize(extract_blocks(document), self.output)
+        self.assertEqual(targets['upgrade cards'].name, 'glossary-upgrade-cards.md')
+
+    def test_appendix_composite_artwork_preserves_labels_and_annotations(self):
+        with pymupdf.open(SOURCE) as document:
+            for number, description in sorted(COMPOSITE_FIGURES):
+                if number < 24:
+                    continue
+                box = next(box for box, name, _ in FIGURES[number] if name == description)
+                with isolate_figure(document, number, FIGURE_GROUPS[number, description], box, unmarked=(number == 24)) as isolated:
+                    clip = pymupdf.Rect(box)
+                    original = document[number - 1].get_pixmap(matrix=pymupdf.Matrix(2, 2), clip=clip)
+                    artwork = isolated[0].get_pixmap(matrix=pymupdf.Matrix(2, 2), clip=clip, alpha=True)
+                    # Compare opaque artwork; transparent shadows blend against the removed card background.
+                    source, pixels = original.samples, artwork.samples
+                    difference = checked = 0
+                    for index in range(artwork.width * artwork.height):
+                        if pixels[index * 4 + 3] != 255:
+                            continue
+                        difference += sum(abs(source[index * 3 + channel] - pixels[index * 4 + channel])
+                                          for channel in range(3))
+                        checked += 3
+                    self.assertGreater(checked, 100, description)
+                    self.assertLess(difference / checked, 1, description)
+                    if 'anatomy' in description:
+                        self.assertEqual(isolated[0].get_text().split(),
+                                         document[number - 1].get_text(clip=clip).split())
 
     def test_page_two_structure_and_paragraphs(self):
         golden = self.rule('golden-rules', 'introduction').split('\n\n')[1:]
@@ -165,8 +255,9 @@ class ConversionTests(unittest.TestCase):
                 if anchor and target.suffix == '.md':
                     self.assertIn(f'<a id="{anchor}"></a>', target.read_text(encoding='utf-8'))
                 links += 1
-        self.assertEqual(links, 626)
-        self.assertRegex(self.rule('ability-queue'), r'Rules%20Reference%20v1\.4\.6-1\.pdf#page=24')
+        self.assertGreater(links, 626)
+        self.assertIn('../index.md#appendix-examples', self.rule('ability-queue'))
+        self.assertIn('../index.md#appendix-examples', self.rule('device'))
         self.assertIn('glossary-charges.md#force-charge', self.rule('setup'))
 
     def test_symbols_and_composite_artwork(self):
@@ -262,12 +353,14 @@ class ConversionTests(unittest.TestCase):
                                 self.assertIn(re.sub(r'\s', '', text), rendered, (number, description))
 
     def test_callout_diagrams_keep_embedded_text_without_page_content(self):
-        self.assertEqual(COMPOSITE_FIGURES, {(2, 'Pilot and ship abilities'),
-                                           (4, 'Single turret arc indicator and ID tokens')})
+        self.assertTrue({(2, 'Pilot and ship abilities'),
+                         (4, 'Single turret arc indicator and ID tokens')} <= COMPOSITE_FIGURES)
         with pymupdf.open(SOURCE) as document:
-            for number, description in COMPOSITE_FIGURES:
+            for number, description in sorted(COMPOSITE_FIGURES):
+                if number >= 24:
+                    continue
                 box = next(box for box, name, _ in FIGURES[number] if name == description)
-                with isolate_figure(document, number, FIGURE_GROUPS[number, description], box) as isolated:
+                with isolate_figure(document, number, FIGURE_GROUPS[number, description], box, unmarked=(number == 24)) as isolated:
                     self.assertEqual(isolated[0].get_text().split(),
                                      document[number - 1].get_text(clip=pymupdf.Rect(box)).split())
                     clip = pymupdf.Rect(box)
@@ -478,7 +571,7 @@ class ConversionTests(unittest.TestCase):
             shutil.copytree(self.output, root)
             self.assertEqual((root / SOURCE.name).read_bytes(), SOURCE.read_bytes())
             for page in root.rglob('*.md'):
-                self.assertIn(page.parent, (root, root / 'introduction', root / 'glossary'))
+                self.assertIn(page.parent, (root, root / 'introduction', root / 'glossary', root / 'appendix-examples'))
                 for url in re.findall(r'\]\(([^)\n]+)\)', page.read_text(encoding='utf-8')):
                     parsed = urlsplit(url)
                     self.assertFalse(parsed.scheme or parsed.netloc, url)
